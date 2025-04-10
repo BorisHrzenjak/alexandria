@@ -1,0 +1,36 @@
+# Node/npm files
+node_modules/
+npm-debug.log
+package-lock.json
+
+# IDE files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Chrome extension files to ignore
+*.crx
+*.pem
+
+# Build directories
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.bak
+
+# Log files
+*.log
+
+# Screenshots (except the one used in README)
+screenshots/
+!screenshot.png
+.snapshots/
+
+# Environment files
+.env
+.env.local
