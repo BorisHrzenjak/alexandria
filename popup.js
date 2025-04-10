@@ -22,6 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let allPrompts = []; // Cache all prompts to avoid frequent storage reads
     let currentSort = 'createdAtDesc'; // Placeholder for future sorting
     let isFavoritesViewActive = false; // State for favorites filter
+    const returnToPromptsBtn = document.createElement('button');
+    returnToPromptsBtn.id = 'return-to-prompts-btn';
+    returnToPromptsBtn.className = 'sidebar-btn';
+    returnToPromptsBtn.textContent = '← All Prompts';
+    returnToPromptsBtn.style.display = 'none';
+    document.querySelector('.sidebar').appendChild(returnToPromptsBtn);
 
     // --- Dark Mode --- 
     const applyDarkMode = (isEnabled) => {
@@ -402,11 +408,21 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.value = ''; // Clear search
             categoryFilter.value = 'all'; // Reset category filter
             favoritesBtn.classList.add('active');
+            returnToPromptsBtn.style.display = 'block';
         } else {
             favoritesBtn.classList.remove('active');
+            returnToPromptsBtn.style.display = 'none';
         }
         clearModalFields(); // Reset modal state if switching views
         filterAndRenderPrompts(); // Re-render with new filter state
+    });
+
+    // Return to All Prompts Button
+    returnToPromptsBtn.addEventListener('click', () => {
+        isFavoritesViewActive = false;
+        favoritesBtn.classList.remove('active');
+        returnToPromptsBtn.style.display = 'none';
+        filterAndRenderPrompts();
     });
 
 }); // This should be the end of the DOMContentLoaded listener

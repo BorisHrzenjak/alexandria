@@ -192,12 +192,15 @@ h1 {
     text-align: left;
     font-size: 0.95em;
     color: var(--text-primary);
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition: all 0.2s ease-in-out;
+    transform-origin: center;
 }
 
 .sidebar-btn:hover {
     background-color: var(--button-hover-bg);
     border-color: var(--accent-color);
+    transform: translateX(2px);
+    box-shadow: var(--shadow);
 }
 
 .sidebar-btn.active {
@@ -303,7 +306,8 @@ select {
     padding: 10px 12px;
     border-bottom: 1px solid var(--border-color);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease-in-out;
+    transform-origin: center;
 }
 
 .prompt-item:last-child {
@@ -311,7 +315,9 @@ select {
 }
 
 .prompt-item:hover {
-    background-color: rgba(var(--accent-rgb), 0.1); /* Use accent with alpha */
+    background-color: rgba(var(--accent-rgb), 0.1);
+    transform: scale(1.01);
+    box-shadow: var(--shadow);
 }
 
 .prompt-item-content {
@@ -365,12 +371,14 @@ select {
     color: var(--text-secondary);
     border-radius: 4px;
     line-height: 1;
-    transition: color 0.2s ease, background-color 0.2s ease;
+    transition: all 0.2s ease-in-out;
+    transform-origin: center;
 }
 
 .prompt-item-actions button:hover {
     color: var(--text-primary);
     background-color: rgba(var(--accent-rgb), 0.1);
+    transform: scale(1.1);
 }
 
 .prompt-item-actions .favorite-btn.favorited {
@@ -557,11 +565,14 @@ input:checked + .slider:before {
     float: right;
     font-size: 1em;
     font-weight: 500;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease-in-out;
+    transform-origin: center;
 }
 
 .modal-content button:hover {
     background-color: var(--button-primary-hover-bg);
+    transform: scale(1.05);
+    box-shadow: var(--shadow);
 }
 
 /* Placeholder Styling */
