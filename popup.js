@@ -172,6 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 promptTooltip.textContent = ''; // Clear content
             });
             
+            li.addEventListener('click', () => {
+                copyPromptText(prompt.text); 
+            });
+
             promptListUl.appendChild(li);
         });
     };
