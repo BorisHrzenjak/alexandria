@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Alexandria Prompt Library",
+  "version": "0.1.0",
+  "description": "A personal library to store and manage AI prompts.",
+  "permissions": [
+    "storage",
+    "clipboardWrite"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/logo.png",
+      "48": "icons/logo.png",
+      "128": "icons/logo.png"
+    }
+  },
+  "icons": {
+    "16": "icons/logo.png",
+    "48": "icons/logo.png",
+    "128": "icons/logo.png"
+  }
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alexandria Prompt Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="icons/logo.png" alt="Alexandria Logo" id="header-logo">
+            <h1>Alexandria</h1>
+        </div>
+        <!-- Copy Feedback Message -->
+        <div id="copy-feedback">Copied!</div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <button id="add-prompt-btn" class="sidebar-btn">✨ New Prompt</button>
+                <button id="favorites-btn" class="sidebar-btn">⭐ Favorites</button>
+                <button id="settings-btn" class="sidebar-btn">⚙️ Settings</button>
+                <!-- Removed Filter/Settings buttons for now, can be added back differently -->
+                <!-- <button id="filter-btn">Filter</button> -->
+                <!-- <button id="settings-btn">Settings</button> -->
+            </div>
+            <div class="prompt-list-area">
+                <div class="filter-controls">
+                    <input type="text" id="search-input" placeholder="Search prompts...">
+                    <select id="category-filter">
+                        <option value="all">All Categories</option>
+                        <!-- Categories will be populated dynamically -->
+                    </select>
+                </div>
+                <h2>Prompts</h2>
+                <ul id="prompt-list">
+                    <!-- Prompt items will be dynamically added here -->
+                    <li class="prompt-item-placeholder">Loading prompts...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Text Tooltip (hidden by default) -->
+    <div id="prompt-tooltip"></div>
+
+    <!-- Add Prompt Modal (hidden by default) -->
+    <div id="add-prompt-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Add New Prompt</h2>
+            <label for="prompt-title">Title:</label>
+            <input type="text" id="prompt-title" required>
+            <label for="prompt-text">Prompt Text:</label>
+            <textarea id="prompt-text" rows="5" required></textarea>
+            <label for="prompt-category">Category:</label>
+            <input type="text" id="prompt-category" placeholder="e.g., Writing, Coding, General (optional)">
+            <label for="prompt-tags">Tags (comma-separated):</label>
+            <input type="text" id="prompt-tags">
+            <button id="save-prompt-btn">Save Prompt</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Settings</h2>
+            <div class="setting-item">
+                <label for="dark-mode-toggle">Dark Mode:</label>
+                <label class="switch" title="Toggle Dark Mode">
+                    <input type="checkbox" id="dark-mode-toggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <!-- Add more settings here later -->
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
