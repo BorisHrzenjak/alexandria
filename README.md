@@ -25,7 +25,7 @@ A personal AI prompt management tool that helps you organize, categorize, and qu
 ## Usage
 
 1. Click the extension icon to open Alexandria
-2. Use the "+" button to add new prompts
+2. Use the "New Prompt" button to add new prompts
 3. Click any prompt to copy its text to clipboard
 4. Use the star (⭐) button to favorite prompts
 5. Filter prompts using the search box and category dropdown
