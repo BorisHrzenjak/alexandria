@@ -254,7 +254,7 @@ input[type="text"]:focus,
 select:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 0, 122, 255), 0.3); /* Use accent color with alpha */
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.3); /* Use accent color with alpha */
 }
 
 /* Need to define --accent-rgb for box-shadow */
@@ -321,11 +321,16 @@ select {
     padding: 10px 15px;
     border-bottom: 1px solid var(--border-color);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Add transition for shadow */
 }
 
 .prompt-item:last-child {
     border-bottom: none;
+}
+
+.prompt-item:hover {
+    background-color: rgba(var(--accent-rgb), 0.08); /* Slightly subtler than before */
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08); /* Subtle shadow */
 }
 
 .prompt-item-content {
@@ -349,6 +354,7 @@ select {
     display: block; /* Simple block display */
     /* Remove any line clamping */
     -webkit-line-clamp: initial;
+    line-clamp: initial; /* Standard property for future compatibility */
     -webkit-box-orient: initial;
 }
 
