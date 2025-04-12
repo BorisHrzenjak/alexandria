@@ -200,15 +200,14 @@ h1 {
 
 .sidebar-btn:hover {
     background-color: var(--button-hover-bg);
-    border-color: var(--accent-color);
-    transform: translateX(2px);
-    box-shadow: var(--shadow);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Subtle hover shadow */
+    transform: translateY(-1px); /* Slight lift */
 }
 
-.sidebar-btn.active {
-    background-color: var(--accent-color);
-    color: var(--button-primary-text);
-    font-weight: 600;
+.sidebar-btn:active {
+    transform: translateY(0px) scale(0.98); /* Push down slightly */
+    background-color: color-mix(in srgb, var(--button-hover-bg) 90%, black);
+    box-shadow: none;
 }
 
 .prompt-list-area {
@@ -218,6 +217,18 @@ h1 {
     flex-direction: column;
     overflow: hidden; /* Important for controlling scroll */
     background-color: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    position: relative;
+    width: 80%; /* Limit width */
+    max-width: 450px; /* Max width */
+    animation: fadeIn 0.3s ease-out; /* Add fade-in animation */
+}
+
+/* Define the fade-in animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .filter-controls {
@@ -254,7 +265,6 @@ body.dark-mode {
     --accent-rgb: 10, 132, 255; /* Default dark mode RGB */
 }
 
-
 select {
     flex-grow: 0;
     min-width: 150px;
@@ -278,6 +288,10 @@ select {
     border: 1px solid var(--border-color);
     border-radius: 6px;
     background-color: var(--bg-secondary);
+    max-height: 300px; /* Limit height and enable scroll */
+    overflow-y: auto;
+    padding-right: 5px; /* Space for scrollbar */
+    margin-bottom: 10px; /* Space below list */
 }
 
 /* --- Scrollbar Styling --- */
@@ -303,40 +317,39 @@ select {
 /* --- Prompt List Item Styles --- */
 .prompt-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
+    align-items: flex-start; /* Align to top instead of center for multi-line titles */
+    padding: 10px 15px;
     border-bottom: 1px solid var(--border-color);
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    transform-origin: center;
+    transition: background-color 0.2s ease;
 }
 
 .prompt-item:last-child {
     border-bottom: none;
 }
 
-.prompt-item:hover {
-    background-color: rgba(var(--accent-rgb), 0.1);
-    transform: scale(1.01);
-    box-shadow: var(--shadow);
-}
-
 .prompt-item-content {
+    flex-grow: 1; /* Allow content to take available space */
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    margin-right: 12px;
-    overflow: hidden;
+    gap: 4px;
+    min-width: 0; /* Prevent flex item from overflowing */
+    margin-right: 10px; /* Space between content and actions */
 }
 
 .prompt-item-title {
     font-weight: 500;
     color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 1em;
+    white-space: normal; /* Allow wrapping */
+    overflow-wrap: break-word; /* Break long words if needed */
+    line-height: 1.4;
+    /* Remove any constraints that limit text display */
+    overflow: visible;
+    text-overflow: initial;
+    display: block; /* Simple block display */
+    /* Remove any line clamping */
+    -webkit-line-clamp: initial;
+    -webkit-box-orient: initial;
 }
 
 .prompt-item-details {
@@ -360,27 +373,39 @@ select {
 .prompt-item-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevent shrinking */
+    gap: 4px; /* Reduce gap between buttons */
+    /* Make buttons always visible but compact */
+    opacity: 0.6; /* Slightly faded when not hovered */
+    transition: opacity 0.2s ease;
+}
+
+.prompt-item:hover .prompt-item-actions {
+    opacity: 1; /* Full opacity on hover */
 }
 
 .prompt-item-actions button {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1.2em;
-    padding: 4px;
+    font-size: 1em; /* Slightly smaller */
     color: var(--text-secondary);
+    padding: 3px; /* Smaller padding */
+    margin-left: 2px; /* Smaller margin */
     border-radius: 4px;
+    transition: color 0.2s ease, background-color 0.2s ease, transform 0.1s ease;
     line-height: 1;
-    transition: all 0.2s ease-in-out;
-    transform-origin: center;
+    vertical-align: middle;
 }
 
 .prompt-item-actions button:hover {
     color: var(--text-primary);
     background-color: rgba(var(--accent-rgb), 0.1);
     transform: scale(1.1);
+}
+
+.prompt-item-actions button:active {
+    transform: scale(0.95);
 }
 
 .prompt-item-actions .favorite-btn.favorited {
@@ -400,22 +425,96 @@ select {
     font-style: italic;
 }
 
-/* --- Prompt Tooltip Styles --- */
-#prompt-tooltip {
-    display: none; /* Hidden by default */
-    position: absolute;
+/* --- Prompt View Panel --- */
+.panel {
+    position: absolute; /* Position relative to the body/container */
+    top: 0;
+    right: 0;
+    width: 90%; /* Slightly less than full width */
+    height: 100%;
+    background-color: var(--bg-primary); /* Use primary background */
+    border-left: 1px solid var(--border-color);
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    z-index: 1100; /* Above modals */
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%); /* Start off-screen right */
+    transition: transform 0.3s ease-in-out; /* Smooth slide transition */
+}
+
+.panel.panel-visible {
+    transform: translateX(0); /* Slide into view */
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border-color);
     background-color: var(--bg-secondary);
+    flex-shrink: 0;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis if title is too long */
+}
+
+#panel-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.8em;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0 5px;
+    line-height: 1;
+}
+
+#panel-close-btn:hover {
     color: var(--text-primary);
-    border: 1px solid var(--border-color);
+}
+
+.panel-content {
+    padding: 15px;
+    flex-grow: 1;
+    overflow-y: auto; /* Allow scrolling for long prompts */
+    white-space: pre-wrap; /* Respect newlines */
+    font-size: 0.95em;
+    line-height: 1.6;
+}
+
+.panel-footer {
+    padding: 10px 15px;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+    flex-shrink: 0;
+    text-align: right;
+}
+
+#panel-copy-btn {
+    padding: 8px 15px;
+    background-color: var(--button-primary-bg);
+    color: var(--button-primary-text);
+    border: none;
     border-radius: 6px;
-    padding: 10px 12px;
+    cursor: pointer;
     font-size: 0.9em;
-    max-width: 350px; /* Limit width */
-    word-wrap: break-word;
-    box-shadow: var(--shadow);
-    z-index: 100; /* Ensure it's above other list items */
-    pointer-events: none; /* Prevent tooltip from interfering with mouse events */
-    white-space: pre-wrap; /* Preserve line breaks from prompt text */
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+#panel-copy-btn:hover {
+    background-color: var(--button-primary-hover-bg);
+}
+
+#panel-copy-btn:active {
+    transform: scale(0.98);
+    background-color: color-mix(in srgb, var(--button-primary-hover-bg) 90%, black);
 }
 
 /* --- Dark Mode Toggle Switch --- */
@@ -474,7 +573,7 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
-/* --- Modal Styles --- */
+/* --- Modals --- */
 .modal {
     display: none;
     position: fixed;
@@ -499,6 +598,7 @@ input:checked + .slider:before {
     border-radius: 8px;
     position: relative;
     box-shadow: var(--shadow);
+    animation: fadeIn 0.3s ease-out; /* Add fade-in animation */
 }
 
 .close-btn {
@@ -577,6 +677,11 @@ input:checked + .slider:before {
     background-color: var(--button-primary-hover-bg);
     transform: scale(1.05);
     box-shadow: var(--shadow);
+}
+
+.modal-content button:active {
+    transform: scale(0.98);
+    background-color: color-mix(in srgb, var(--button-primary-hover-bg) 90%, black);
 }
 
 /* Placeholder Styling */

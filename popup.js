@@ -18,6 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyFeedback = document.getElementById('copy-feedback'); // Get feedback element
     const modalTitle = document.getElementById('modal-title'); // Get modal title element
 
+    // Panel Elements
+    const promptViewPanel = document.getElementById('prompt-view-panel');
+    const panelTitle = document.getElementById('panel-prompt-title');
+    const panelText = document.getElementById('panel-prompt-text');
+    const panelCloseBtn = document.getElementById('panel-close-btn');
+    const panelCopyBtn = document.getElementById('panel-copy-btn');
+
+    let currentTooltipTarget = null; // Keep track of which button opened the tooltip
+    let tooltipTimeoutId = null; // To manage hover delay
+    const TOOLTIP_DELAY = 750; // Delay in milliseconds
+    let currentPanelPromptText = ''; // Store text for panel copy button
+
     // State
     let allPrompts = []; // Cache all prompts to avoid frequent storage reads
     let currentSort = 'createdAtDesc'; // Placeholder for future sorting
@@ -120,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 <div class="prompt-item-actions">
+                    <button class="view-btn" title="View Full Prompt">🔍</button> 
                     <button class="favorite-btn ${prompt.favorite ? 'favorited' : ''}" title="Favorite">${prompt.favorite ? '🌟' : '⭐'}</button>
                     <button class="edit-btn" title="Edit Prompt">✏️</button> 
                     <button class="delete-btn" title="Delete Prompt">🗑️</button>
@@ -143,39 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 toggleFavorite(prompt.id);
             });
             
-            // --- Tooltip Hover Logic --- 
-            li.addEventListener('mouseenter', (e) => {
-                // Use requestAnimationFrame to avoid layout thrashing & ensure element is ready
-                requestAnimationFrame(() => {
-                    promptTooltip.textContent = prompt.text;
-                    promptTooltip.style.display = 'block';
-    
-                    // Position tooltip relative to the list item
-                    const rect = li.getBoundingClientRect();
-                    const popupRect = body.getBoundingClientRect(); // Get bounds of the popup window
-    
-                    let top = rect.bottom + 5; // Position below the item
-                    let left = rect.left + 5; // Position slightly indented
-    
-                    // Adjust if tooltip goes off-screen vertically
-                    if (top + promptTooltip.offsetHeight > popupRect.height - 10) { // 10px buffer
-                        top = rect.top - promptTooltip.offsetHeight - 5; // Position above
-                    }
-                    // Adjust if tooltip goes off-screen horizontally
-                    if (left + promptTooltip.offsetWidth > popupRect.width - 10) { 
-                        left = popupRect.width - promptTooltip.offsetWidth - 10; // Align to right edge
-                    }
-                    // Ensure left doesn't go negative
-                    left = Math.max(5, left);
-    
-                    promptTooltip.style.top = `${top}px`;
-                    promptTooltip.style.left = `${left}px`;
-                });
-            });
-
-            li.addEventListener('mouseleave', () => {
-                promptTooltip.style.display = 'none';
-                promptTooltip.textContent = ''; // Clear content
+            li.querySelector('.view-btn').addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent triggering li click (copy)
+                panelTitle.textContent = prompt.title;
+                panelText.textContent = prompt.text;
+                currentPanelPromptText = prompt.text; // Store for copy button
+                promptViewPanel.classList.add('panel-visible');
             });
             
             li.addEventListener('click', () => {
@@ -233,7 +219,83 @@ document.addEventListener('DOMContentLoaded', () => {
     categoryFilter.addEventListener('change', filterAndRenderPrompts);
 
     // --- Modal Handling --- 
+    // Get unique tags from all prompts
+    const getAllUniqueTags = () => {
+        return [...new Set(allPrompts.flatMap(p => p.tags))].sort();
+    };
+
+    // Populate dropdowns with existing categories and tags
+    const populateDropdowns = () => {
+        // Populate categories
+        const categories = [...new Set(allPrompts.map(p => p.category).filter(Boolean))].sort();
+        const categorySelect = document.getElementById('existing-categories');
+        categorySelect.innerHTML = '<option value="">Select existing category</option>';
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categorySelect.appendChild(option);
+        });
+    
+        // Populate tags
+        const tags = getAllUniqueTags();
+        const tagSelect = document.getElementById('existing-tags');
+        tagSelect.innerHTML = '<option value="">Select existing tags</option>';
+        tags.forEach(tag => {
+            const option = document.createElement('option');
+            option.value = tag;
+            option.textContent = tag;
+            tagSelect.appendChild(option);
+        });
+    };
+    
+    // Handle existing tag selection
+    document.getElementById('existing-tags').addEventListener('change', (e) => {
+        const selectedTag = e.target.value;
+        if (!selectedTag) return;
+    
+        const tagsInput = document.getElementById('prompt-tags');
+        const currentTags = tagsInput.value.split(',').map(t => t.trim()).filter(t => t !== '');
+        
+        if (!currentTags.includes(selectedTag)) {
+            const newTags = currentTags.length > 0 
+                ? `${tagsInput.value}, ${selectedTag}` 
+                : selectedTag;
+            tagsInput.value = newTags;
+        }
+        
+        e.target.value = ''; // Reset dropdown
+    });
+
+    // Handle existing category selection
+    document.getElementById('existing-categories').addEventListener('change', (e) => {
+        const selectedCategory = e.target.value;
+        if (!selectedCategory) return;
+        
+        const categoryInput = document.getElementById('prompt-category');
+        categoryInput.value = selectedCategory;
+        e.target.value = ''; // Reset dropdown
+    });
+
+    // Make category input editable
+    document.getElementById('prompt-category').addEventListener('input', function(e) {
+        const newCategory = this.value.trim();
+        if (newCategory) {
+            // Update dropdown if needed
+            const existingOption = document.querySelector(`#existing-categories option[value="${newCategory}"]`);
+            if (!existingOption) {
+                const option = document.createElement('option');
+                option.value = newCategory;
+                option.textContent = newCategory;
+                document.getElementById('existing-categories').appendChild(option);
+            }
+        }
+    });
+
     const openModal = (modal) => {
+        if (modal === addPromptModal) {
+            populateDropdowns();
+        }
         modal.style.display = 'block';
     };
 
@@ -395,6 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('prompt-text').value = '';
         document.getElementById('prompt-category').value = '';
         document.getElementById('prompt-tags').value = '';
+        document.getElementById('existing-tags').value = '';
         // Reset modal state to 'Add New'
         modalTitle.textContent = 'Add New Prompt';
         savePromptBtn.textContent = 'Save Prompt';
@@ -423,6 +486,18 @@ document.addEventListener('DOMContentLoaded', () => {
         favoritesBtn.classList.remove('active');
         returnToPromptsBtn.style.display = 'none';
         filterAndRenderPrompts();
+    });
+
+    // --- Panel Event Listeners ---
+    panelCloseBtn.addEventListener('click', () => {
+        promptViewPanel.classList.remove('panel-visible');
+    });
+
+    panelCopyBtn.addEventListener('click', () => {
+        if (currentPanelPromptText) {
+            copyPromptText(currentPanelPromptText);
+            // Optionally, briefly change button text or show feedback inside panel
+        }
     });
 
 }); // This should be the end of the DOMContentLoaded listener

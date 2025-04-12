@@ -20,17 +20,17 @@
 
         <div class="main-content">
             <div class="sidebar">
-                <button id="add-prompt-btn" class="sidebar-btn">✨ New Prompt</button>
-                <button id="favorites-btn" class="sidebar-btn">⭐ Favorites</button>
-                <button id="settings-btn" class="sidebar-btn">⚙️ Settings</button>
+                <button id="add-prompt-btn" class="sidebar-btn" title="Create a new prompt template">✨ New Prompt</button>
+                <button id="favorites-btn" class="sidebar-btn" title="View your favorite prompts">⭐ Favorites</button>
+                <button id="settings-btn" class="sidebar-btn" title="Open application settings">⚙️ Settings</button>
                 <!-- Removed Filter/Settings buttons for now, can be added back differently -->
                 <!-- <button id="filter-btn">Filter</button> -->
                 <!-- <button id="settings-btn">Settings</button> -->
             </div>
             <div class="prompt-list-area">
                 <div class="filter-controls">
-                    <input type="text" id="search-input" placeholder="Search prompts...">
-                    <select id="category-filter">
+                    <input type="text" id="search-input" placeholder="Search prompts..." title="Search prompts by title, text, category, or tag">
+                    <select id="category-filter" title="Filter prompts by category">
                         <option value="all">All Categories</option>
                         <!-- Categories will be populated dynamically -->
                     </select>
@@ -44,8 +44,19 @@
         </div>
     </div>
 
-    <!-- Prompt Text Tooltip (hidden by default) -->
-    <div id="prompt-tooltip"></div>
+    <!-- Prompt View Panel (hidden by default) -->
+    <div id="prompt-view-panel" class="panel">
+        <div class="panel-header">
+            <h3 id="panel-prompt-title">Prompt Title</h3>
+            <button id="panel-close-btn" title="Close Panel">&times;</button>
+        </div>
+        <div id="panel-prompt-text" class="panel-content">
+            Prompt text will appear here...
+        </div>
+        <div class="panel-footer">
+            <button id="panel-copy-btn" title="Copy Prompt Text">Copy Text</button>
+        </div>
+    </div>
 
     <!-- Add Prompt Modal (hidden by default) -->
     <div id="add-prompt-modal" class="modal">
@@ -57,10 +68,21 @@
             <label for="prompt-text">Prompt Text:</label>
             <textarea id="prompt-text" rows="5" required></textarea>
             <label for="prompt-category">Category:</label>
-            <input type="text" id="prompt-category" placeholder="e.g., Writing, Coding, General (optional)">
-            <label for="prompt-tags">Tags (comma-separated):</label>
-            <input type="text" id="prompt-tags">
-            <button id="save-prompt-btn">Save Prompt</button>
+            <div class="tags-input-container">
+                <select id="existing-categories" class="tag-select">
+                    <option value="">Select existing category</option>
+                    <!-- Categories will be populated dynamically -->
+                </select>
+                <input type="text" id="prompt-category" placeholder="Type new category">
+            </div>
+            <label for="prompt-tags">Tags:</label>
+            <div class="tags-input-container">
+                <select id="existing-tags" class="tag-select">
+                    <option value="">Select existing tags</option>
+                    <!-- Tags will be populated dynamically -->
+                </select>
+                <input type="text" id="prompt-tags" placeholder="Type new tags (comma-separated)">
+            <button id="save-prompt-btn" title="Save the current prompt">Save Prompt</button>
         </div>
     </div>
 
