@@ -8,38 +8,112 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <!-- Custom markdown parser -->
+    <script src="markdown-parser.js"></script>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <img src="icons/logo.png" alt="Alexandria Logo" id="header-logo">
-            <h1>Alexandria</h1>
-        </div>
         <!-- Copy Feedback Message -->
         <div id="copy-feedback">Copied!</div>
 
-        <div class="main-content">
-            <div class="sidebar">
-                <button id="add-prompt-btn" class="sidebar-btn" title="Create a new prompt template">✨ New Prompt</button>
-                <button id="favorites-btn" class="sidebar-btn" title="View your favorite prompts">⭐ Favorites</button>
-                <button id="settings-btn" class="sidebar-btn" title="Open application settings">⚙️ Settings</button>
-                <!-- Removed Filter/Settings buttons for now, can be added back differently -->
-                <!-- <button id="filter-btn">Filter</button> -->
-                <!-- <button id="settings-btn">Settings</button> -->
-            </div>
-            <div class="prompt-list-area">
-                <div class="filter-controls">
-                    <input type="text" id="search-input" placeholder="Search prompts..." title="Search prompts by title, text, category, or tag">
-                    <select id="category-filter" title="Filter prompts by category">
-                        <option value="all">All Categories</option>
-                        <!-- Categories will be populated dynamically -->
-                    </select>
+        <div class="app-layout">
+            <!-- Collapsible Sidebar Menu -->
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg>
+                    </div>
+                    <span class="sidebar-title">Alexandria</span>
                 </div>
-                <h2>Prompts</h2>
-                <ul id="prompt-list">
-                    <!-- Prompt items will be dynamically added here -->
-                    <li class="prompt-item-placeholder">Loading prompts...</li>
-                </ul>
+                
+                <div class="sidebar-section">
+                    <h3 class="section-title">Menu</h3>
+                    <div class="menu-items">
+                        <div class="menu-item" id="create-prompt-btn">
+                            <div class="menu-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                            </div>
+                            <span class="menu-text">New Prompt</span>
+                        </div>
+                        <div class="menu-item" id="favorites-btn">
+                            <div class="menu-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2 L15.09 8.26 L22 9.27 L17 14.14 L18.18 21.02 L12 17.77 L5.82 21.02 L7 14.14 L2 9.27 L8.91 8.26 L12 2 Z"></path>
+                                </svg>
+                            </div>
+                            <span class="menu-text">Favorites</span>
+                        </div>
+                        <div class="menu-item" id="all-prompts-btn">
+                            <div class="menu-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </div>
+                            <span class="menu-text">All Prompts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="section-title">Settings</h3>
+                    <div class="menu-items">
+                        <div class="menu-item" id="settings-btn">
+                            <div class="menu-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                            </div>
+                            <span class="menu-text">Settings</span>
+                        </div>
+                        <div class="menu-item" id="profile-btn">
+                            <div class="menu-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <span class="menu-text">Profile</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="main-content">
+                <div class="content-header">
+                    <div class="search-container">
+                        <div class="search-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </div>
+                        <input type="text" id="search-input" placeholder="Search prompts...">
+                    </div>
+                    <div class="filter-controls">
+                        <select id="category-filter">
+                            <option value="all">All Categories</option>
+                            <!-- Categories will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="prompt-list-container">
+                    <h2 class="content-title">All Prompts</h2>
+                    <ul id="prompt-list">
+                        <!-- Prompt items will be dynamically added here -->
+                        <li class="prompt-item-placeholder">Loading prompts...</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -82,6 +156,7 @@
                     <!-- Tags will be populated dynamically -->
                 </select>
                 <input type="text" id="prompt-tags" placeholder="Type new tags (comma-separated)">
+            </div>
             <button id="save-prompt-btn" title="Save the current prompt">Save Prompt</button>
         </div>
     </div>
@@ -94,7 +169,7 @@
             <div class="setting-item">
                 <label for="dark-mode-toggle">Dark Mode:</label>
                 <label class="switch" title="Toggle Dark Mode">
-                    <input type="checkbox" id="dark-mode-toggle">
+                    <input type="checkbox" id="dark-mode-toggle" checked>
                     <span class="slider round"></span>
                 </label>
             </div>

@@ -3,9 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // DOM Elements
     const body = document.body;
+    const sidebar = document.getElementById('sidebar');
     const settingsBtn = document.getElementById('settings-btn');
+    const profileBtn = document.getElementById('profile-btn');
     const favoritesBtn = document.getElementById('favorites-btn');
-    const addPromptBtn = document.getElementById('add-prompt-btn');
+    const createPromptBtn = document.getElementById('create-prompt-btn');
+    const allPromptsBtn = document.getElementById('all-prompts-btn');
     const addPromptModal = document.getElementById('add-prompt-modal');
     const settingsModal = document.getElementById('settings-modal');
     const closeModalBtn = addPromptModal.querySelector('.close-btn');
@@ -14,9 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const categoryFilter = document.getElementById('category-filter');
     const darkModeToggle = document.getElementById('dark-mode-toggle');
-    const promptTooltip = document.getElementById('prompt-tooltip'); // Get tooltip element
-    const copyFeedback = document.getElementById('copy-feedback'); // Get feedback element
-    const modalTitle = document.getElementById('modal-title'); // Get modal title element
+    const copyFeedback = document.getElementById('copy-feedback');
+    const modalTitle = document.getElementById('modal-title');
+    const contentTitle = document.querySelector('.content-title');
 
     // Panel Elements
     const promptViewPanel = document.getElementById('prompt-view-panel');
@@ -25,21 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const panelCloseBtn = document.getElementById('panel-close-btn');
     const panelCopyBtn = document.getElementById('panel-copy-btn');
 
-    let currentTooltipTarget = null; // Keep track of which button opened the tooltip
-    let tooltipTimeoutId = null; // To manage hover delay
-    const TOOLTIP_DELAY = 750; // Delay in milliseconds
     let currentPanelPromptText = ''; // Store text for panel copy button
 
     // State
     let allPrompts = []; // Cache all prompts to avoid frequent storage reads
     let currentSort = 'createdAtDesc'; // Placeholder for future sorting
     let isFavoritesViewActive = false; // State for favorites filter
-    const returnToPromptsBtn = document.createElement('button');
-    returnToPromptsBtn.id = 'return-to-prompts-btn';
-    returnToPromptsBtn.className = 'sidebar-btn';
-    returnToPromptsBtn.textContent = '← All Prompts';
-    returnToPromptsBtn.style.display = 'none';
-    document.querySelector('.sidebar').appendChild(returnToPromptsBtn);
 
     // --- Dark Mode --- 
     const applyDarkMode = (isEnabled) => {
@@ -53,7 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loadDarkModePreference = () => {
         chrome.storage.local.get('darkMode', (result) => {
-            applyDarkMode(!!result.darkMode);
+            // Default to dark mode if not set
+            const isDarkMode = result.darkMode === undefined ? true : !!result.darkMode;
+            applyDarkMode(isDarkMode);
         });
     };
 
@@ -111,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!promptsToRender || promptsToRender.length === 0) {
             promptListUl.innerHTML = '<li class="prompt-item-placeholder">No prompts found. Try adjusting filters or adding a new one!</li>';
-            promptTooltip.style.display = 'none'; // Ensure tooltip is hidden if list is empty
             return;
         }
 
@@ -120,25 +115,35 @@ document.addEventListener('DOMContentLoaded', () => {
             li.classList.add('prompt-item');
             li.dataset.promptId = prompt.id;
 
-            const tagsHtml = prompt.tags.map(tag => `#${escapeHtml(tag)}`).join(' ');
-            const categoryHtml = prompt.category ? `<span class="prompt-item-category">${escapeHtml(prompt.category)}</span>` : '';
+            const tagsHtml = prompt.tags.length > 0 ? 
+                `<div class="prompt-item-meta">
+                    ${prompt.tags.map(tag => `<span class="prompt-item-tags">#${escapeHtml(tag)}</span>`).join('')}
+                </div>` : '';
+                
+            const categoryHtml = prompt.category ? 
+                `<div class="prompt-item-meta">
+                    <span class="prompt-item-category">${escapeHtml(prompt.category)}</span>
+                </div>` : '';
+
+            // Create a preview of the prompt text (first 100 chars)
+            const previewText = prompt.text.length > 100 ? 
+                prompt.text.substring(0, 100) + '...' : 
+                prompt.text;
 
             li.innerHTML = `
                 <div class="prompt-item-content">
-                    <span class="prompt-item-title">${escapeHtml(prompt.title)}</span>
-                    <div class="prompt-item-details">
-                        ${categoryHtml}
-                        <span class="prompt-item-tags">${tagsHtml}</span>
-                    </div>
+                    <h4 class="prompt-item-title">${escapeHtml(prompt.title)}</h4>
+                    <p class="prompt-item-preview">${escapeHtml(previewText)}</p>
+                    ${categoryHtml}
+                    ${tagsHtml}
                 </div>
                 <div class="prompt-item-actions">
-                    <button class="view-btn" title="View Full Prompt">🔍</button> 
-                    <button class="favorite-btn ${prompt.favorite ? 'favorited' : ''}" title="Favorite">${prompt.favorite ? '🌟' : '⭐'}</button>
-                    <button class="edit-btn" title="Edit Prompt">✏️</button> 
-                    <button class="delete-btn" title="Delete Prompt">🗑️</button>
+                    <button class="prompt-action-btn view-btn" title="View Full Prompt">🔍</button> 
+                    <button class="prompt-action-btn favorite-btn ${prompt.favorite ? 'favorited' : ''}" title="Favorite">${prompt.favorite ? '🌟' : '⭐'}</button>
+                    <button class="prompt-action-btn edit-btn" title="Edit Prompt">✏️</button> 
+                    <button class="prompt-action-btn delete-btn" title="Delete Prompt">🗑️</button>
                 </div>
             `;
-            // TODO: Add hover popup functionality
 
             // Attach event listeners
             li.querySelector('.edit-btn').addEventListener('click', (e) => {
@@ -159,9 +164,21 @@ document.addEventListener('DOMContentLoaded', () => {
             li.querySelector('.view-btn').addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent triggering li click (copy)
                 panelTitle.textContent = prompt.title;
-                panelText.textContent = prompt.text;
+                // Use our custom markdown parser
+                try {
+                    if (typeof markdownParser !== 'undefined') {
+                        panelText.innerHTML = markdownParser.parse(prompt.text);
+                    } else {
+                        // Fallback if parser is not available
+                        panelText.textContent = prompt.text;
+                        console.error('Markdown parser not available');
+                    }
+                } catch (error) {
+                    console.error('Error parsing markdown:', error);
+                    panelText.textContent = prompt.text; // Fallback to plain text
+                }
                 currentPanelPromptText = prompt.text; // Store for copy button
-                promptViewPanel.classList.add('panel-visible');
+                promptViewPanel.classList.add('active');
             });
             
             li.addEventListener('click', () => {
@@ -180,7 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reset favorites view if search or category changes
         if (searchTerm || selectedCategory !== 'all') {
             isFavoritesViewActive = false;
-            favoritesBtn.classList.remove('active'); 
+            // Remove active class from favorites button
+            if (favoritesBtn) {
+                favoritesBtn.classList.remove('active');
+                allPromptsBtn.classList.add('active');
+            }
         }
 
         getPrompts(prompts => {
@@ -189,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const textMatch = prompt.text.toLowerCase().includes(searchTerm);
                 const tagsMatch = prompt.tags.some(tag => tag.toLowerCase().includes(searchTerm));
                 const categoryMatch = (selectedCategory === 'all' || prompt.category === selectedCategory);
-                const searchMatch = titleMatch || textMatch || tagsMatch || categoryMatch;
+                const searchMatch = searchTerm ? (titleMatch || textMatch || tagsMatch) : true;
                 
                 return categoryMatch && searchMatch;
             });
@@ -197,17 +218,21 @@ document.addEventListener('DOMContentLoaded', () => {
             // Apply favorites filter if active
             if (isFavoritesViewActive) {
                 filteredPrompts = filteredPrompts.filter(prompt => prompt.favorite === true);
+                contentTitle.textContent = 'Favorite Prompts';
+            } else {
+                contentTitle.textContent = 'All Prompts';
             }
 
+            updateCategoryFilter(allPrompts); // Update category dropdown with all available categories
             renderPromptList(filteredPrompts);
         });
     };
 
-    // --- Initial Load --- 
+    // --- Initial Load ---
     const loadAndRenderAll = () => {
-        getPrompts((prompts) => {
-            updateCategoryFilter(prompts); // Update filter before rendering
-            filterAndRenderPrompts(); // Render based on initial filters
+        getPrompts(prompts => {
+            updateCategoryFilter(prompts);
+            renderPromptList(prompts);
         });
         loadDarkModePreference();
     };
@@ -215,8 +240,31 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderAll(); // Load prompts and dark mode setting when popup opens
 
     // --- Event Listeners for Filters ---
-    searchInput.addEventListener('input', filterAndRenderPrompts);
-    categoryFilter.addEventListener('change', filterAndRenderPrompts);
+    if (searchInput) {
+        searchInput.addEventListener('input', filterAndRenderPrompts);
+    }
+    
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', filterAndRenderPrompts);
+    }
+
+    // --- Menu Item Handling ---
+    const setActiveMenuItem = (activeItem) => {
+        // Remove active class from all menu items
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Add active class to the clicked menu item
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
+    };
+
+    // Activate All Prompts by default
+    if (allPromptsBtn) {
+        allPromptsBtn.classList.add('active');
+    }
 
     // --- Modal Handling --- 
     // Get unique tags from all prompts
@@ -226,26 +274,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Populate dropdowns with existing categories and tags
     const populateDropdowns = () => {
-        // Populate categories
+        const existingCategoriesSelect = document.getElementById('existing-categories');
+        const existingTagsSelect = document.getElementById('existing-tags');
+        
+        // Clear existing options
+        existingCategoriesSelect.innerHTML = '<option value="">Select existing category</option>';
+        existingTagsSelect.innerHTML = '<option value="">Select existing tags</option>';
+        
+        // Get unique categories and tags
         const categories = [...new Set(allPrompts.map(p => p.category).filter(Boolean))].sort();
-        const categorySelect = document.getElementById('existing-categories');
-        categorySelect.innerHTML = '<option value="">Select existing category</option>';
+        const tags = getAllUniqueTags();
+        
+        // Populate categories dropdown
         categories.forEach(category => {
             const option = document.createElement('option');
             option.value = category;
             option.textContent = category;
-            categorySelect.appendChild(option);
+            existingCategoriesSelect.appendChild(option);
         });
-    
-        // Populate tags
-        const tags = getAllUniqueTags();
-        const tagSelect = document.getElementById('existing-tags');
-        tagSelect.innerHTML = '<option value="">Select existing tags</option>';
+        
+        // Populate tags dropdown
         tags.forEach(tag => {
             const option = document.createElement('option');
             option.value = tag;
             option.textContent = tag;
-            tagSelect.appendChild(option);
+            existingTagsSelect.appendChild(option);
         });
     };
     
@@ -253,251 +306,241 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('existing-tags').addEventListener('change', (e) => {
         const selectedTag = e.target.value;
         if (!selectedTag) return;
-    
-        const tagsInput = document.getElementById('prompt-tags');
-        const currentTags = tagsInput.value.split(',').map(t => t.trim()).filter(t => t !== '');
         
+        const tagsInput = document.getElementById('prompt-tags');
+        const currentTags = tagsInput.value.split(',').map(tag => tag.trim()).filter(Boolean);
+        
+        // Only add if not already in the list
         if (!currentTags.includes(selectedTag)) {
-            const newTags = currentTags.length > 0 
-                ? `${tagsInput.value}, ${selectedTag}` 
-                : selectedTag;
-            tagsInput.value = newTags;
+            if (currentTags.length > 0 && currentTags[0] !== '') {
+                tagsInput.value = currentTags.join(', ') + ', ' + selectedTag;
+            } else {
+                tagsInput.value = selectedTag;
+            }
         }
         
-        e.target.value = ''; // Reset dropdown
+        // Reset the dropdown
+        e.target.value = '';
     });
-
+    
     // Handle existing category selection
     document.getElementById('existing-categories').addEventListener('change', (e) => {
         const selectedCategory = e.target.value;
         if (!selectedCategory) return;
         
-        const categoryInput = document.getElementById('prompt-category');
-        categoryInput.value = selectedCategory;
-        e.target.value = ''; // Reset dropdown
+        document.getElementById('prompt-category').value = selectedCategory;
+        
+        // Reset the dropdown
+        e.target.value = '';
     });
 
-    // Make category input editable
-    document.getElementById('prompt-category').addEventListener('input', function(e) {
-        const newCategory = this.value.trim();
-        if (newCategory) {
-            // Update dropdown if needed
-            const existingOption = document.querySelector(`#existing-categories option[value="${newCategory}"]`);
-            if (!existingOption) {
-                const option = document.createElement('option');
-                option.value = newCategory;
-                option.textContent = newCategory;
-                document.getElementById('existing-categories').appendChild(option);
-            }
-        }
-    });
-
+    // Modal functions
     const openModal = (modal) => {
-        if (modal === addPromptModal) {
-            populateDropdowns();
-        }
-        modal.style.display = 'block';
+        modal.classList.add('active');
+        populateDropdowns(); // Refresh dropdowns when opening modal
     };
-
+    
     const closeModal = (modal) => {
-        modal.style.display = 'none';
+        modal.classList.remove('active');
     };
 
-    settingsBtn.addEventListener('click', () => openModal(settingsModal));
-
-    addPromptBtn.addEventListener('click', () => {
-        // Ensure modal is reset to 'Add New' state
-        clearModalFields();
-        openModal(addPromptModal);
-        document.getElementById('prompt-title').focus(); // Focus title field
+    // Open settings modal
+    settingsBtn.addEventListener('click', () => {
+        setActiveMenuItem(settingsBtn);
+        openModal(settingsModal);
     });
 
-    const closeBtns = document.querySelectorAll('.modal .close-btn'); // Get all modal close buttons
+    // Open add prompt modal from menu
+    createPromptBtn.addEventListener('click', () => {
+        setActiveMenuItem(createPromptBtn);
+        // Ensure modal is reset to 'Add New' state
+        modalTitle.textContent = 'Add New Prompt';
+        clearModalFields();
+        document.getElementById('prompt-title').dataset.promptId = ''; // Clear any existing ID
+        openModal(addPromptModal);
+    });
 
-    closeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Find the closest parent modal and close it
-            const modalToClose = btn.closest('.modal');
-            if (modalToClose) {
-              closeModal(modalToClose);
-            }
+    // Close modal buttons
+    document.querySelectorAll('.close-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const modal = e.target.closest('.modal');
+            closeModal(modal);
         });
     });
 
-    // Close modal if clicking outside the content
-    window.addEventListener('click', (event) => {
-        if (event.target.classList.contains('modal')) { // Check if click is on the modal background
-            closeModal(event.target);
-        } 
+    // Close panel buttons
+    document.querySelectorAll('#panel-close-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+        });
     });
 
-    // --- Actions --- 
+    // Save prompt button
     savePromptBtn.addEventListener('click', () => {
-        const title = document.getElementById('prompt-title').value.trim();
-        const text = document.getElementById('prompt-text').value.trim();
-        const categoryInput = document.getElementById('prompt-category').value.trim();
-        const category = categoryInput ? categoryInput.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : 'General';
-        const tags = document.getElementById('prompt-tags').value.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag !== '');
-
+        const titleInput = document.getElementById('prompt-title');
+        const textInput = document.getElementById('prompt-text');
+        const categoryInput = document.getElementById('prompt-category');
+        const tagsInput = document.getElementById('prompt-tags');
+        
+        const title = titleInput.value.trim();
+        const text = textInput.value.trim();
+        const category = categoryInput.value.trim();
+        const tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(Boolean);
+        
         if (!title || !text) {
-            alert('Title and Prompt Text are required.');
+            alert('Title and prompt text are required!');
             return;
         }
-
-        const editingId = addPromptModal.dataset.editingId;
-        let updatedPrompts;
-
-        if (editingId) {
-            // --- Editing existing prompt ---
-            updatedPrompts = allPrompts.map(p => {
-                if (p.id === editingId) {
-                    return {
-                        ...p, // Preserve existing fields like favorite, createdAt, id
-                        title: title,
-                        text: text,
-                        category: category,
-                        tags: tags
-                    };
+        
+        const promptId = titleInput.dataset.promptId;
+        
+        if (promptId) {
+            // Edit existing prompt
+            getPrompts(prompts => {
+                const index = prompts.findIndex(p => p.id === promptId);
+                if (index !== -1) {
+                    prompts[index].title = title;
+                    prompts[index].text = text;
+                    prompts[index].category = category;
+                    prompts[index].tags = tags;
+                    prompts[index].updatedAt = new Date().toISOString();
+                    
+                    savePrompts(prompts, () => {
+                        closeModal(addPromptModal);
+                        filterAndRenderPrompts();
+                    });
                 }
-                return p;
             });
         } else {
-            // --- Adding new prompt ---
+            // Add new prompt
             const newPrompt = {
                 id: Date.now().toString(),
-                title: title,
-                text: text,
-                category: category,
-                tags: tags,
-                favorite: false, // Default for new prompts
-                createdAt: new Date().toISOString()
+                title,
+                text,
+                category,
+                tags,
+                favorite: false,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
-            updatedPrompts = [...allPrompts, newPrompt];
+            
+            getPrompts(prompts => {
+                prompts.push(newPrompt);
+                savePrompts(prompts, () => {
+                    closeModal(addPromptModal);
+                    filterAndRenderPrompts();
+                });
+            });
         }
-
-        savePrompts(updatedPrompts, () => {
-            // These should run *after* the save is complete
-            updateCategoryFilter(updatedPrompts); // Update filter dropdown
-            filterAndRenderPrompts(); // Re-render the list
-            closeModal(addPromptModal); // Close modal
-            clearModalFields(); // Reset modal fields and state
-        });
     });
 
+    // Delete prompt
     const deletePrompt = (promptId) => {
-        if (!confirm('Are you sure you want to delete this prompt?')) {
-            return;
+        if (confirm('Are you sure you want to delete this prompt?')) {
+            getPrompts(prompts => {
+                const updatedPrompts = prompts.filter(p => p.id !== promptId);
+                savePrompts(updatedPrompts, filterAndRenderPrompts);
+            });
         }
-        const updatedPrompts = allPrompts.filter(p => p.id !== promptId);
-        savePrompts(updatedPrompts, () => {
-            updateCategoryFilter(updatedPrompts); // Update filter dropdown
-            filterAndRenderPrompts(); // Re-render the list
-        });
     };
 
+    // Toggle favorite
     const toggleFavorite = (promptId) => {
-        const updatedPrompts = allPrompts.map(p => {
-            if (p.id === promptId) {
-                return { ...p, favorite: !p.favorite };
+        getPrompts(prompts => {
+            const index = prompts.findIndex(p => p.id === promptId);
+            if (index !== -1) {
+                prompts[index].favorite = !prompts[index].favorite;
+                savePrompts(prompts, filterAndRenderPrompts);
             }
-            return p;
         });
-        savePrompts(updatedPrompts, filterAndRenderPrompts); // Save and re-render
     };
 
+    // Copy prompt text
     const copyPromptText = (text) => {
         navigator.clipboard.writeText(text).then(() => {
-            console.log('Prompt copied to clipboard!');
-            // Show feedback message
+            // Show feedback
             copyFeedback.classList.add('show');
-            // Hide after a short delay
             setTimeout(() => {
                 copyFeedback.classList.remove('show');
-            }, 1500); // 1.5 seconds
+            }, 2000);
         }).catch(err => {
             console.error('Failed to copy text: ', err);
-            alert('Failed to copy prompt.');
+            alert('Failed to copy to clipboard');
         });
     };
-    
+
+    // Panel copy button
+    panelCopyBtn.addEventListener('click', () => {
+        copyPromptText(currentPanelPromptText);
+    });
+
+    // Open edit modal
     const openEditModal = (promptId) => {
-        const promptToEdit = allPrompts.find(p => p.id === promptId);
-        if (!promptToEdit) {
-            console.error('Prompt not found for editing:', promptId);
-            return;
-        }
-
-        // Populate modal fields
-        document.getElementById('prompt-title').value = promptToEdit.title;
-        document.getElementById('prompt-text').value = promptToEdit.text;
-        document.getElementById('prompt-category').value = promptToEdit.category || '';
-        document.getElementById('prompt-tags').value = promptToEdit.tags.join(', ');
-
-        // Set modal state for editing
-        modalTitle.textContent = 'Edit Prompt';
-        savePromptBtn.textContent = 'Update Prompt';
-        addPromptModal.dataset.editingId = promptId; // Store the ID being edited
-
-        openModal(addPromptModal);
+        getPrompts(prompts => {
+            const prompt = prompts.find(p => p.id === promptId);
+            if (prompt) {
+                modalTitle.textContent = 'Edit Prompt';
+                
+                const titleInput = document.getElementById('prompt-title');
+                const textInput = document.getElementById('prompt-text');
+                const categoryInput = document.getElementById('prompt-category');
+                const tagsInput = document.getElementById('prompt-tags');
+                
+                titleInput.value = prompt.title;
+                titleInput.dataset.promptId = promptId; // Store ID for save
+                textInput.value = prompt.text;
+                categoryInput.value = prompt.category || '';
+                tagsInput.value = prompt.tags.join(', ');
+                
+                openModal(addPromptModal);
+            }
+        });
     };
-    
-    // --- Utility ---
-    function escapeHtml(unsafe) {
-        if (typeof unsafe !== 'string') return '';
-        return unsafe
-             .replace(/&/g, "&amp;")
-             .replace(/</g, "&lt;")
-             .replace(/>/g, "&gt;")
-             .replace(/"/g, "&quot;")
-             .replace(/'/g, "&#039;");
-     }
 
-    function clearModalFields() {
+    // --- Utility ---
+    const escapeHtml = (unsafe) => {
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
+    // Clear modal fields
+    const clearModalFields = () => {
         document.getElementById('prompt-title').value = '';
         document.getElementById('prompt-text').value = '';
         document.getElementById('prompt-category').value = '';
         document.getElementById('prompt-tags').value = '';
+        document.getElementById('existing-categories').value = '';
         document.getElementById('existing-tags').value = '';
-        // Reset modal state to 'Add New'
-        modalTitle.textContent = 'Add New Prompt';
-        savePromptBtn.textContent = 'Save Prompt';
-        delete addPromptModal.dataset.editingId; // Remove editing state
+    };
+
+    // Menu navigation
+    if (favoritesBtn) {
+        favoritesBtn.addEventListener('click', () => {
+            setActiveMenuItem(favoritesBtn);
+            isFavoritesViewActive = true;
+            filterAndRenderPrompts();
+        });
     }
 
-    // Favorites Button
-    favoritesBtn.addEventListener('click', () => {
-        isFavoritesViewActive = !isFavoritesViewActive; // Toggle state
-        if (isFavoritesViewActive) {
-            searchInput.value = ''; // Clear search
-            categoryFilter.value = 'all'; // Reset category filter
-            favoritesBtn.classList.add('active');
-            returnToPromptsBtn.style.display = 'block';
-        } else {
-            favoritesBtn.classList.remove('active');
-            returnToPromptsBtn.style.display = 'none';
-        }
-        clearModalFields(); // Reset modal state if switching views
-        filterAndRenderPrompts(); // Re-render with new filter state
-    });
+    if (allPromptsBtn) {
+        allPromptsBtn.addEventListener('click', () => {
+            setActiveMenuItem(allPromptsBtn);
+            isFavoritesViewActive = false;
+            filterAndRenderPrompts();
+        });
+    }
 
-    // Return to All Prompts Button
-    returnToPromptsBtn.addEventListener('click', () => {
-        isFavoritesViewActive = false;
-        favoritesBtn.classList.remove('active');
-        returnToPromptsBtn.style.display = 'none';
-        filterAndRenderPrompts();
-    });
-
-    // --- Panel Event Listeners ---
-    panelCloseBtn.addEventListener('click', () => {
-        promptViewPanel.classList.remove('panel-visible');
-    });
-
-    panelCopyBtn.addEventListener('click', () => {
-        if (currentPanelPromptText) {
-            copyPromptText(currentPanelPromptText);
-            // Optionally, briefly change button text or show feedback inside panel
-        }
-    });
-
-}); // This should be the end of the DOMContentLoaded listener
+    // Profile button (placeholder for future functionality)
+    if (profileBtn) {
+        profileBtn.addEventListener('click', () => {
+            setActiveMenuItem(profileBtn);
+            alert('Profile functionality will be available in a future update.');
+        });
+    }
+});
