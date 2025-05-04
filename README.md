@@ -15,6 +15,7 @@ A personal AI prompt management tool that helps you organize, categorize, and qu
 - **Quick Copy**: Click any prompt to copy its text to clipboard
 - **Search & Filter**: Find prompts by text, tags, or category
 - **Hover Preview**: Hover over prompts to view full content
+- **New**: Import/export all prompts as JSON files
 
 ## Installation
 
@@ -30,6 +31,7 @@ A personal AI prompt management tool that helps you organize, categorize, and qu
 3. Click any prompt to copy its text to clipboard
 4. Use the star (⭐) button to favorite prompts
 5. Filter prompts using the search box and category dropdown
+6. Export/Import prompts via the Settings menu for backup or transfer
 
 ## Development
 
@@ -37,6 +39,7 @@ This extension uses:
 - Chrome's Storage API for data persistence
 - Vanilla JavaScript for functionality
 - CSS variables for theming
+- JSON import/export for data portability
 
 To contribute:
 1. Fork the repository
