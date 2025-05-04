@@ -350,6 +350,147 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal(settingsModal);
     });
 
+    // Import/Export functionality
+    const exportPromptsBtn = document.getElementById('export-prompts-btn');
+    const importPromptsBtn = document.getElementById('import-prompts-btn');
+    const importFileInput = document.getElementById('import-file-input');
+
+    // Export prompts to a JSON file
+    exportPromptsBtn.addEventListener('click', () => {
+        getPrompts(prompts => {
+            if (prompts.length === 0) {
+                alert('No prompts to export.');
+                return;
+            }
+
+            // Create a JSON blob
+            const promptsJson = JSON.stringify(prompts, null, 2);
+            const blob = new Blob([promptsJson], { type: 'application/json' });
+            
+            // Create a download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `alexandria-prompts-${new Date().toISOString().split('T')[0]}.json`;
+            
+            // Trigger download
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        });
+    });
+
+    // Trigger file input when import button is clicked
+    importPromptsBtn.addEventListener('click', () => {
+        importFileInput.click();
+    });
+
+    // Handle file selection for import
+    importFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importedPrompts = JSON.parse(event.target.result);
+                
+                // Validate imported data structure
+                if (!Array.isArray(importedPrompts)) {
+                    throw new Error('Invalid format: Expected an array of prompts');
+                }
+                
+                // Check if each prompt has required fields
+                const validPrompts = importedPrompts.filter(prompt => {
+                    return prompt && 
+                           typeof prompt.title === 'string' && 
+                           typeof prompt.text === 'string' &&
+                           prompt.id;
+                });
+                
+                if (validPrompts.length === 0) {
+                    throw new Error('No valid prompts found in the imported file');
+                }
+                
+                // Ask user about import strategy
+                const importStrategy = confirm(
+                    `Found ${validPrompts.length} prompts to import. Click OK to merge with existing prompts, or Cancel to replace all existing prompts.`
+                );
+                
+                if (importStrategy) {
+                    // Merge: Add imported prompts to existing ones
+                    getPrompts(existingPrompts => {
+                        // Create a map of existing IDs to avoid duplicates
+                        const existingIds = new Set(existingPrompts.map(p => p.id));
+                        
+                        // Add only prompts with unique IDs
+                        const newPrompts = [...existingPrompts];
+                        let addedCount = 0;
+                        
+                        validPrompts.forEach(prompt => {
+                            // Generate a new ID if the imported one already exists
+                            if (existingIds.has(prompt.id)) {
+                                prompt.id = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                            }
+                            
+                            // Ensure timestamps are valid
+                            if (!prompt.createdAt) {
+                                prompt.createdAt = new Date().toISOString();
+                            }
+                            if (!prompt.updatedAt) {
+                                prompt.updatedAt = new Date().toISOString();
+                            }
+                            
+                            newPrompts.push(prompt);
+                            existingIds.add(prompt.id);
+                            addedCount++;
+                        });
+                        
+                        // Save merged prompts
+                        savePrompts(newPrompts, () => {
+                            alert(`Successfully imported ${addedCount} prompts.`);
+                            filterAndRenderPrompts();
+                        });
+                    });
+                } else {
+                    // Replace: Overwrite all existing prompts
+                    // Ensure all prompts have valid timestamps
+                    validPrompts.forEach(prompt => {
+                        if (!prompt.createdAt) {
+                            prompt.createdAt = new Date().toISOString();
+                        }
+                        if (!prompt.updatedAt) {
+                            prompt.updatedAt = new Date().toISOString();
+                        }
+                    });
+                    
+                    savePrompts(validPrompts, () => {
+                        alert(`Successfully replaced prompts with ${validPrompts.length} imported prompts.`);
+                        filterAndRenderPrompts();
+                    });
+                }
+            } catch (error) {
+                console.error('Import error:', error);
+                alert(`Error importing prompts: ${error.message}`);
+            }
+            
+            // Reset file input
+            importFileInput.value = '';
+        };
+        
+        reader.onerror = () => {
+            alert('Error reading the file');
+            importFileInput.value = '';
+        };
+        
+        reader.readAsText(file);
+    });
+
     // Open add prompt modal from menu
     createPromptBtn.addEventListener('click', () => {
         setActiveMenuItem(createPromptBtn);

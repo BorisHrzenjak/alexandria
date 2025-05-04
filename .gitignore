@@ -34,3 +34,7 @@ screenshots/
 # Environment files
 .env
 .env.local
+
+# Project files
+todo.txt
+todo.md

@@ -828,3 +828,26 @@ input:checked + .slider:before {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary);
 }
+
+/* Import/Export Buttons */
+.import-export-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.settings-btn {
+    background-color: var(--button-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    font-size: 14px;
+}
+
+.settings-btn:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--accent-color);
+}
