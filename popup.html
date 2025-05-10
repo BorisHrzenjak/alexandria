@@ -194,13 +194,17 @@
                 <input type="file" id="import-file-input" accept=".json" style="display: none;">
             </div>
             <!-- OpenRouter API Key Setting -->
-            <div class="setting-item">
+            <div class="setting-item api-key-setting">
                 <label for="openrouter-api-key">OpenRouter API Key:</label>
                 <div class="api-key-container">
                     <input type="password" id="openrouter-api-key" placeholder="Enter your OpenRouter API key">
                     <button id="save-api-key-btn" class="settings-btn" title="Save API Key">Save Key</button>
                 </div>
-                <p class="setting-description">Required for AI prompt enhancement feature. Get your key at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></p>
+                <div class="api-key-info">
+                    <p class="setting-description">Required for AI prompt enhancement feature.</p>
+                    <p class="setting-description">This key enables the AI to improve your prompts with advanced language models.</p>
+                    <p class="setting-description">Get your free API key at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></p>
+                </div>
             </div>
         </div>
     </div>
