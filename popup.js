@@ -20,6 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyFeedback = document.getElementById('copy-feedback');
     const modalTitle = document.getElementById('modal-title');
     const contentTitle = document.querySelector('.content-title');
+    
+    // AI Enhancement Elements
+    const panelEnhanceBtn = document.getElementById('panel-enhance-btn');
+    const modalEnhanceBtn = document.getElementById('modal-enhance-btn');
+    const openRouterApiKeyInput = document.getElementById('openrouter-api-key');
+    const saveApiKeyBtn = document.getElementById('save-api-key-btn');
 
     // Panel Elements
     const promptViewPanel = document.getElementById('prompt-view-panel');
@@ -27,8 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const panelText = document.getElementById('panel-prompt-text');
     const panelCloseBtn = document.getElementById('panel-close-btn');
     const panelCopyBtn = document.getElementById('panel-copy-btn');
+    const panelKeepBtn = document.getElementById('panel-keep-btn');
 
     let currentPanelPromptText = ''; // Store text for panel copy button
+    let currentPanelPromptId = ''; // Store current prompt ID for save functionality
+    let isPromptEnhanced = false; // Track if the prompt has been enhanced
 
     // State
     let allPrompts = []; // Cache all prompts to avoid frequent storage reads
@@ -178,6 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     panelText.textContent = prompt.text; // Fallback to plain text
                 }
                 currentPanelPromptText = prompt.text; // Store for copy button
+                currentPanelPromptId = prompt.id; // Store prompt ID for save functionality
+                isPromptEnhanced = false; // Reset enhancement state
+                panelKeepBtn.classList.add('hidden'); // Hide keep button initially
                 promptViewPanel.classList.add('active');
             });
             
@@ -235,6 +247,68 @@ document.addEventListener('DOMContentLoaded', () => {
             renderPromptList(prompts);
         });
         loadDarkModePreference();
+        loadOpenRouterApiKey();
+    };
+    
+    // --- OpenRouter API Integration ---
+    const loadOpenRouterApiKey = () => {
+        if (window.openRouterApi) {
+            window.openRouterApi.getApiKey().then(apiKey => {
+                if (openRouterApiKeyInput) {
+                    openRouterApiKeyInput.value = apiKey;
+                }
+            });
+        }
+    };
+    
+    // Function to show loading state on buttons
+    const setButtonLoading = (button, isLoading) => {
+        if (isLoading) {
+            button.disabled = true;
+            button.dataset.originalText = button.textContent;
+            button.textContent = 'Processing...';
+        } else {
+            button.disabled = false;
+            button.textContent = button.dataset.originalText || button.textContent;
+        }
+    };
+    
+    // Function to enhance prompt text with AI
+    const enhancePromptWithAI = async (promptText, resultCallback, buttonElement) => {
+        try {
+            console.log('Enhancing prompt:', promptText.substring(0, 50) + '...');
+            
+            if (!window.openRouterApi) {
+                throw new Error('OpenRouter API not available');
+            }
+            
+            const hasKey = await window.openRouterApi.hasApiKey();
+            if (!hasKey) {
+                alert('Please add your OpenRouter API key in settings first.');
+                openModal(settingsModal);
+                // Reset button state if provided
+                if (buttonElement) {
+                    setButtonLoading(buttonElement, false);
+                }
+                return;
+            }
+            
+            console.log('API key verified, calling enhancePrompt...');
+            const enhancedText = await window.openRouterApi.enhancePrompt(promptText);
+            console.log('Received enhanced text:', enhancedText.substring(0, 50) + '...');
+            
+            if (resultCallback && typeof resultCallback === 'function') {
+                resultCallback(enhancedText);
+            }
+        } catch (error) {
+            console.error('Error enhancing prompt:', error);
+            alert(`Error enhancing prompt: ${error.message}`);
+            
+            // Reset button state if provided
+            if (buttonElement) {
+                setButtonLoading(buttonElement, false);
+            }
+        }
     };
 
     loadAndRenderAll(); // Load prompts and dark mode setting when popup opens
@@ -349,6 +423,17 @@ document.addEventListener('DOMContentLoaded', () => {
         setActiveMenuItem(settingsBtn);
         openModal(settingsModal);
     });
+    
+    // Save OpenRouter API Key
+    if (saveApiKeyBtn) {
+        saveApiKeyBtn.addEventListener('click', async () => {
+            const apiKey = openRouterApiKeyInput.value.trim();
+            if (window.openRouterApi) {
+                await window.openRouterApi.saveApiKey(apiKey);
+                alert(apiKey ? 'API key saved successfully!' : 'API key cleared.');
+            }
+        });
+    }
 
     // Import/Export functionality
     const exportPromptsBtn = document.getElementById('export-prompts-btn');
@@ -514,10 +599,36 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.panel').forEach(panel => {
                 panel.classList.remove('active');
+                
+                // Reset panel state
+                currentPanelPromptId = '';
+                currentPanelPromptText = '';
+                isPromptEnhanced = false;
+                panelKeepBtn.classList.add('hidden');
             });
         });
     });
 
+    // Modal enhance button
+    if (modalEnhanceBtn) {
+        modalEnhanceBtn.addEventListener('click', () => {
+            const textInput = document.getElementById('prompt-text');
+            const promptText = textInput.value.trim();
+            
+            if (!promptText) {
+                alert('Please enter some prompt text to enhance!');
+                return;
+            }
+            
+            setButtonLoading(modalEnhanceBtn, true);
+            
+            enhancePromptWithAI(promptText, (enhancedText) => {
+                textInput.value = enhancedText;
+                setButtonLoading(modalEnhanceBtn, false);
+            }, modalEnhanceBtn);
+        });
+    }
+    
     // Save prompt button
     savePromptBtn.addEventListener('click', () => {
         const titleInput = document.getElementById('prompt-title');
@@ -616,6 +727,93 @@ document.addEventListener('DOMContentLoaded', () => {
     panelCopyBtn.addEventListener('click', () => {
         copyPromptText(currentPanelPromptText);
     });
+    
+    // Panel keep button - save enhanced prompt
+    if (panelKeepBtn) {
+        panelKeepBtn.addEventListener('click', () => {
+            if (!isPromptEnhanced || !currentPanelPromptId) {
+                return; // Do nothing if prompt isn't enhanced or ID is missing
+            }
+            
+            setButtonLoading(panelKeepBtn, true);
+            
+            // Update the prompt in storage
+            getPrompts(prompts => {
+                const index = prompts.findIndex(p => p.id === currentPanelPromptId);
+                if (index !== -1) {
+                    // Update the prompt text with enhanced version
+                    prompts[index].text = currentPanelPromptText;
+                    prompts[index].updatedAt = new Date().toISOString();
+                    
+                    // Create a copy of the updated prompt for later reference
+                    const updatedPrompt = {...prompts[index]};
+                    
+                    // Save the updated prompts
+                    savePrompts(prompts, () => {
+                        console.log('Enhanced prompt saved with ID:', currentPanelPromptId);
+                        console.log('Updated prompt text:', currentPanelPromptText.substring(0, 50) + '...');
+                        
+                        // Show feedback
+                        alert('Enhanced prompt saved successfully!');
+                        
+                        // Hide keep button and reset enhancement state
+                        isPromptEnhanced = false;
+                        panelKeepBtn.classList.add('hidden');
+                        
+                        // Force a complete refresh of the UI
+                        // 1. Refresh the prompt list
+                        filterAndRenderPrompts();
+                        
+                        // 2. Update the allPrompts cache directly to ensure consistency
+                        const cacheIndex = allPrompts.findIndex(p => p.id === currentPanelPromptId);
+                        if (cacheIndex !== -1) {
+                            allPrompts[cacheIndex] = updatedPrompt;
+                        }
+                        
+                        setButtonLoading(panelKeepBtn, false);
+                    });
+                } else {
+                    alert('Error: Prompt not found.');
+                    setButtonLoading(panelKeepBtn, false);
+                }
+            });
+        });
+    }
+    
+    // Panel enhance button
+    if (panelEnhanceBtn) {
+        panelEnhanceBtn.addEventListener('click', () => {
+            if (!currentPanelPromptText) {
+                alert('No prompt text to enhance!');
+                return;
+            }
+            
+            setButtonLoading(panelEnhanceBtn, true);
+            
+            enhancePromptWithAI(currentPanelPromptText, (enhancedText) => {
+                // Update the panel text with enhanced version
+                try {
+                    if (typeof markdownParser !== 'undefined') {
+                        panelText.innerHTML = markdownParser.parse(enhancedText);
+                    } else {
+                        panelText.textContent = enhancedText;
+                    }
+                } catch (error) {
+                    console.error('Error parsing markdown:', error);
+                    panelText.textContent = enhancedText;
+                }
+                
+                // Update the stored text for copying
+                currentPanelPromptText = enhancedText;
+                
+                // Show the keep button and mark as enhanced
+                isPromptEnhanced = true;
+                panelKeepBtn.classList.remove('hidden');
+                
+                setButtonLoading(panelEnhanceBtn, false);
+            }, panelEnhanceBtn);
+        });
+    }
 
     // Open edit modal
     const openEditModal = (promptId) => {

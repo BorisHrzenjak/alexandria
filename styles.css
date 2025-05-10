@@ -605,10 +605,25 @@ body.dark-mode .sidebar:hover {
     padding: 12px 16px;
     border-top: 1px solid var(--border-color);
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
 }
 
-#panel-copy-btn {
+.panel-actions-left {
+    display: flex;
+    gap: 10px;
+}
+
+.panel-actions-right {
+    display: flex;
+    gap: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+#panel-copy-btn, #panel-enhance-btn, #panel-keep-btn {
     background-color: var(--button-primary-bg);
     color: var(--button-primary-text);
     border: none;
@@ -620,7 +635,7 @@ body.dark-mode .sidebar:hover {
     font-size: 14px;
 }
 
-#panel-copy-btn:hover {
+#panel-copy-btn:hover, #panel-enhance-btn:hover, #panel-keep-btn:hover {
     background-color: var(--button-primary-hover-bg);
 }
 
@@ -696,9 +711,34 @@ body.dark-mode .sidebar:hover {
     box-sizing: border-box;
 }
 
+.prompt-text-container {
+    position: relative;
+    margin-bottom: 16px;
+}
+
 .modal textarea {
     resize: vertical;
     min-height: 100px;
+}
+
+#modal-enhance-btn {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    background-color: var(--accent-color);
+    color: var(--button-primary-text);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 12px;
+    z-index: 5;
+}
+
+#modal-enhance-btn:hover {
+    background-color: var(--accent-hover);
 }
 
 .modal input::placeholder,
@@ -751,6 +791,34 @@ body.dark-mode .sidebar:hover {
 
 .setting-item label {
     margin-bottom: 0;
+}
+
+.api-key-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.api-key-container input {
+    flex-grow: 1;
+    margin-bottom: 0;
+}
+
+.setting-description {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+.setting-description a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.setting-description a:hover {
+    text-decoration: underline;
 }
 
 /* Toggle Switch */

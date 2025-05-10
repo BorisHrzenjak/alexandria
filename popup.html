@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="styles.css">
     <!-- Custom markdown parser -->
     <script src="markdown-parser.js"></script>
+    <!-- OpenRouter API Integration -->
+    <script src="openrouter-api.js"></script>
 </head>
 <body>
     <div class="container">
@@ -128,7 +130,13 @@
             Prompt text will appear here...
         </div>
         <div class="panel-footer">
-            <button id="panel-copy-btn" title="Copy Prompt Text">Copy Text</button>
+            <div class="panel-actions-left">
+                <button id="panel-keep-btn" title="Save the enhanced prompt" class="hidden">Keep Changes</button>
+            </div>
+            <div class="panel-actions-right">
+                <button id="panel-copy-btn" title="Copy Prompt Text">Copy Text</button>
+                <button id="panel-enhance-btn" title="Enhance Prompt with AI">Enhance with AI</button>
+            </div>
         </div>
     </div>
 
@@ -140,7 +148,10 @@
             <label for="prompt-title">Title:</label>
             <input type="text" id="prompt-title" required>
             <label for="prompt-text">Prompt Text:</label>
-            <textarea id="prompt-text" rows="5" required></textarea>
+            <div class="prompt-text-container">
+                <textarea id="prompt-text" rows="5" required></textarea>
+                <button id="modal-enhance-btn" title="Enhance Prompt with AI">Enhance with AI</button>
+            </div>
             <label for="prompt-category">Category:</label>
             <div class="tags-input-container">
                 <select id="existing-categories" class="tag-select">
@@ -182,7 +193,15 @@
                 </div>
                 <input type="file" id="import-file-input" accept=".json" style="display: none;">
             </div>
-            <!-- Add more settings here later -->
+            <!-- OpenRouter API Key Setting -->
+            <div class="setting-item">
+                <label for="openrouter-api-key">OpenRouter API Key:</label>
+                <div class="api-key-container">
+                    <input type="password" id="openrouter-api-key" placeholder="Enter your OpenRouter API key">
+                    <button id="save-api-key-btn" class="settings-btn" title="Save API Key">Save Key</button>
+                </div>
+                <p class="setting-description">Required for AI prompt enhancement feature. Get your key at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></p>
+            </div>
         </div>
     </div>
 
