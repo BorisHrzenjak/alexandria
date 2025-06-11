@@ -1,6 +1,7 @@
 /**
  * Simple Markdown Parser for Alexandria
  * Supports basic markdown formatting: headers, bold, italic, lists, code blocks
+ * Also highlights placeholder text in curly brackets {like this}
  */
 const markdownParser = {
     /**
@@ -122,6 +123,9 @@ const markdownParser = {
         
         // Blockquotes
         text = text.replace(/^>\s*(.*?)$/gm, '<blockquote>$1</blockquote>');
+        
+        // Highlight placeholder text in curly brackets {like this}
+        text = text.replace(/{([^{}]+)}/g, '<span class="placeholder">{$1}</span>');
         
         return text;
     },

@@ -938,3 +938,9 @@ input:checked + .slider:before {
     background-color: var(--button-hover-bg);
     border-color: var(--accent-color);
 }
+
+/* Placeholder Highlighting */
+.placeholder {
+    color: #7c3aed;
+    font-weight: 500;
+}
