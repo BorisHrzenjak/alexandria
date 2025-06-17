@@ -163,7 +163,12 @@
                     <option value="">Select existing tags</option>
                     <!-- Tags will be populated dynamically -->
                 </select>
-                <input type="text" id="prompt-tags" placeholder="Type new tags (comma-separated)">
+                <div class="autocomplete-container">
+                    <input type="text" id="prompt-tags" placeholder="Type new tags (comma-separated)">
+                    <div id="tags-autocomplete" class="autocomplete-dropdown" role="listbox" aria-hidden="true">
+                        <!-- Autocomplete suggestions will be inserted here -->
+                    </div>
+                </div>
             </div>
             <button id="save-prompt-btn" title="Save the current prompt">Save Prompt</button>
         </div>

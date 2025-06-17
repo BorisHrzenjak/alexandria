@@ -346,6 +346,229 @@ document.addEventListener('DOMContentLoaded', () => {
         return [...new Set(allPrompts.flatMap(p => p.tags))].sort();
     };
 
+    // --- Autocomplete Functionality ---
+    
+    // Autocomplete state
+    let autocompleteVisible = false;
+    let autocompleteFocusIndex = -1;
+    let autocompleteItems = [];
+    let autocompleteDebounceTimer = null;
+
+    /**
+     * Debounce function to limit excessive filtering
+     */
+    const debounce = (func, wait) => {
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(autocompleteDebounceTimer);
+                func(...args);
+            };
+            clearTimeout(autocompleteDebounceTimer);
+            autocompleteDebounceTimer = setTimeout(later, wait);
+        };
+    };
+
+    /**
+     * Get autocomplete suggestions based on current input
+     */
+    const getAutocompleteSuggestions = (inputValue) => {
+        if (!inputValue || inputValue.length < 1) {
+            return [];
+        }
+
+        const allTags = getAllUniqueTags();
+        const currentTags = getCurrentTags();
+        const lastTag = getLastPartialTag(inputValue);
+
+        if (!lastTag) {
+            return [];
+        }
+
+        // Filter tags that match the partial input and aren't already selected
+        return allTags.filter(tag => {
+            const matchesInput = tag.toLowerCase().includes(lastTag.toLowerCase());
+            const notAlreadySelected = !currentTags.includes(tag);
+            return matchesInput && notAlreadySelected;
+        }).slice(0, 10); // Limit to 10 suggestions
+    };
+
+    /**
+     * Get currently entered tags from input
+     */
+    const getCurrentTags = () => {
+        const tagsInput = document.getElementById('prompt-tags');
+        if (!tagsInput) return [];
+        return tagsInput.value.split(',').map(tag => tag.trim()).filter(Boolean);
+    };
+
+    /**
+     * Get the last partial tag being typed
+     */
+    const getLastPartialTag = (inputValue) => {
+        const tags = inputValue.split(',');
+        const lastTag = tags[tags.length - 1].trim();
+        return lastTag;
+    };
+
+    /**
+     * Highlight matching text in suggestion
+     */
+    const highlightMatch = (text, search) => {
+        if (!search) return escapeHtml(text);
+        const escapedText = escapeHtml(text);
+        const escapedSearch = escapeHtml(search);
+        const regex = new RegExp(`(${escapedSearch})`, 'gi');
+        return escapedText.replace(regex, '<span class="highlight">$1</span>');
+    };
+
+    /**
+     * Render autocomplete suggestions
+     */
+    const renderAutocompleteSuggestions = (suggestions, searchTerm = '') => {
+        const dropdown = document.getElementById('tags-autocomplete');
+        
+        if (!dropdown) return;
+        
+        if (!suggestions || suggestions.length === 0) {
+            dropdown.innerHTML = '<div class="autocomplete-no-results">No matching tags found</div>';
+            return;
+        }
+
+        dropdown.innerHTML = suggestions.map((tag, index) => {
+            const highlightedText = highlightMatch(tag, searchTerm);
+            return `<div class="autocomplete-item" data-index="${index}" data-tag="${escapeHtml(tag)}" role="option">
+                        ${highlightedText}
+                    </div>`;
+        }).join('');
+
+        // Store suggestions for keyboard navigation
+        autocompleteItems = suggestions;
+
+        // Add click listeners to items
+        dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+            item.addEventListener('click', () => {
+                selectAutocompleteItem(item.dataset.tag);
+            });
+        });
+    };
+
+    /**
+     * Show autocomplete dropdown
+     */
+    const showAutocomplete = () => {
+        const dropdown = document.getElementById('tags-autocomplete');
+        if (dropdown) {
+            dropdown.classList.add('show');
+            dropdown.setAttribute('aria-hidden', 'false');
+        }
+        autocompleteVisible = true;
+        autocompleteFocusIndex = -1;
+    };
+
+    /**
+     * Hide autocomplete dropdown
+     */
+    const hideAutocomplete = () => {
+        const dropdown = document.getElementById('tags-autocomplete');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+            dropdown.setAttribute('aria-hidden', 'true');
+        }
+        autocompleteVisible = false;
+        autocompleteFocusIndex = -1;
+        clearAutocompleteFocus();
+    };
+
+    /**
+     * Handle autocomplete navigation with keyboard
+     */
+    const navigateAutocomplete = (direction) => {
+        const items = document.querySelectorAll('#tags-autocomplete .autocomplete-item');
+        if (items.length === 0) return;
+
+        // Clear previous focus
+        clearAutocompleteFocus();
+
+        // Calculate new index
+        if (direction === 'down') {
+            autocompleteFocusIndex = Math.min(autocompleteFocusIndex + 1, items.length - 1);
+        } else if (direction === 'up') {
+            autocompleteFocusIndex = Math.max(autocompleteFocusIndex - 1, -1);
+        }
+
+        // Apply focus to new item
+        if (autocompleteFocusIndex >= 0) {
+            items[autocompleteFocusIndex].classList.add('focused');
+        }
+    };
+
+    /**
+     * Clear all autocomplete focus states
+     */
+    const clearAutocompleteFocus = () => {
+        document.querySelectorAll('#tags-autocomplete .autocomplete-item').forEach(item => {
+            item.classList.remove('focused');
+        });
+    };
+
+    /**
+     * Select an autocomplete item
+     */
+    const selectAutocompleteItem = (selectedTag) => {
+        const tagsInput = document.getElementById('prompt-tags');
+        if (!tagsInput) return;
+        
+        const currentValue = tagsInput.value;
+        const tags = currentValue.split(',').map(tag => tag.trim()).filter(Boolean);
+        
+        // Remove the last partial tag if it exists
+        const lastTag = getLastPartialTag(currentValue);
+        if (lastTag) {
+            tags.pop(); // Remove the partial tag
+        }
+        
+        // Add the selected tag
+        tags.push(selectedTag);
+        
+        // Join back and add trailing comma and space for next tag
+        tagsInput.value = tags.join(', ') + ', ';
+        
+        // Hide autocomplete and focus back to input
+        hideAutocomplete();
+        tagsInput.focus();
+        
+        // Position cursor at the end
+        tagsInput.setSelectionRange(tagsInput.value.length, tagsInput.value.length);
+        
+        // Trigger input event to potentially show autocomplete for next tag
+        setTimeout(() => {
+            const event = new Event('input', { bubbles: true });
+            tagsInput.dispatchEvent(event);
+        }, 50);
+    };
+
+    /**
+     * Handle autocomplete input with debouncing
+     */
+    const handleAutocompleteInput = debounce((event) => {
+        const inputValue = event.target.value;
+        const lastTag = getLastPartialTag(inputValue);
+        
+        if (!lastTag || lastTag.length < 1) {
+            hideAutocomplete();
+            return;
+        }
+
+        const suggestions = getAutocompleteSuggestions(inputValue);
+        
+        if (suggestions.length > 0) {
+            renderAutocompleteSuggestions(suggestions, lastTag);
+            showAutocomplete();
+        } else {
+            hideAutocomplete();
+        }
+    }, 150); // 150ms debounce delay
+
     // Populate dropdowns with existing categories and tags
     const populateDropdowns = () => {
         const existingCategoriesSelect = document.getElementById('existing-categories');
@@ -395,6 +618,81 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Reset the dropdown
         e.target.value = '';
+        
+        // Hide autocomplete if visible
+        hideAutocomplete();
+    });
+
+    // --- Autocomplete Event Listeners ---
+    
+    // Enhanced tags input handling with autocomplete
+    const tagsInput = document.getElementById('prompt-tags');
+
+    // Input event for autocomplete
+    if (tagsInput) {
+        tagsInput.addEventListener('input', handleAutocompleteInput);
+
+        // Keyboard navigation for autocomplete
+        tagsInput.addEventListener('keydown', (e) => {
+            if (!autocompleteVisible) return;
+
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    navigateAutocomplete('down');
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    navigateAutocomplete('up');
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    if (autocompleteFocusIndex >= 0) {
+                        const focusedItem = document.querySelector('#tags-autocomplete .autocomplete-item.focused');
+                        if (focusedItem) {
+                            selectAutocompleteItem(focusedItem.dataset.tag);
+                        }
+                    }
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    hideAutocomplete();
+                    break;
+                case 'Tab':
+                    // Allow normal tab behavior but hide autocomplete
+                    hideAutocomplete();
+                    break;
+            }
+        });
+
+        // Focus event - show autocomplete if there's already input
+        tagsInput.addEventListener('focus', () => {
+            if (tagsInput.value.trim()) {
+                const event = new Event('input', { bubbles: true });
+                tagsInput.dispatchEvent(event);
+            }
+        });
+
+        // Blur event - hide autocomplete unless clicking on dropdown
+        tagsInput.addEventListener('blur', (e) => {
+            setTimeout(() => {
+                if (!document.querySelector('#tags-autocomplete:hover')) {
+                    hideAutocomplete();
+                }
+            }, 100);
+        });
+    }
+
+    // Hide autocomplete when clicking outside
+    document.addEventListener('click', (e) => {
+        const tagsInput = document.getElementById('prompt-tags');
+        const autocompleteDropdown = document.getElementById('tags-autocomplete');
+        
+        if (tagsInput && autocompleteDropdown && 
+            !tagsInput.contains(e.target) && 
+            !autocompleteDropdown.contains(e.target)) {
+            hideAutocomplete();
+        }
     });
     
     // Handle existing category selection
@@ -848,6 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, "&#039;");
     };
 
+
     // Clear modal fields
     const clearModalFields = () => {
         document.getElementById('prompt-title').value = '';
@@ -856,6 +1155,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('prompt-tags').value = '';
         document.getElementById('existing-categories').value = '';
         document.getElementById('existing-tags').value = '';
+        
+        // Hide autocomplete dropdown
+        hideAutocomplete();
     };
 
     // Menu navigation
