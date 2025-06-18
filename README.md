@@ -2,7 +2,8 @@
 
 A personal AI prompt management tool that helps you organize, categorize, and quickly access your frequently used prompts.
 
-![image](https://github.com/user-attachments/assets/22b57b01-1cdb-4ef1-9422-6fe01a8c70bb)
+![image](https://github.com/user-attachments/assets/ad61fe2f-0d52-4e31-891f-c52a9b057b0c)
+
 
 
 
