@@ -17,6 +17,7 @@ A personal AI prompt management tool that helps you organize, categorize, and qu
 - **Search & Filter**: Find prompts by text, tags, or category
 - **Hover Preview**: Hover over prompts to view full content
 - **New**: Import/export all prompts as JSON files
+- **Playground**: create and modify prompts with AI for various use cases and specific models
 
 ## Installation
 
