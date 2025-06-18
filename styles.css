@@ -1009,3 +1009,308 @@ input:checked + .slider:before {
     color: #7c3aed;
     font-weight: 500;
 }
+
+/* --- Playground Styles --- */
+.playground-container {
+    padding: 0 20px 20px 20px;
+}
+
+.playground-form {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 16px;
+}
+
+.playground-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.playground-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.playground-field label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.playground-select {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.playground-select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb-light), 0.1);
+}
+
+.dark-mode .playground-select:focus {
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb-dark), 0.1);
+}
+
+.playground-textarea-container {
+    position: relative;
+}
+
+.playground-textarea {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 12px;
+    padding-top: 12px;
+    font-size: 14px;
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    resize: vertical;
+    min-height: 160px;
+    transition: border-color 0.2s, background-color 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.playground-textarea.optimized {
+    background: var(--bg-secondary);
+    border-color: var(--accent-color);
+    padding-top: 40px;
+}
+
+.playground-textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb-light), 0.1);
+}
+
+.dark-mode .playground-textarea:focus {
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb-dark), 0.1);
+}
+
+.playground-textarea::placeholder {
+    color: var(--placeholder-text);
+}
+
+.playground-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.playground-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    text-decoration: none;
+}
+
+.playground-btn-primary {
+    background: var(--button-primary-bg);
+    color: var(--button-primary-text);
+}
+
+.playground-btn-primary:hover:not(:disabled) {
+    background: var(--button-primary-hover-bg);
+    transform: translateY(-1px);
+}
+
+.playground-btn-secondary {
+    background: var(--button-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.playground-btn-secondary:hover:not(:disabled) {
+    background: var(--button-hover-bg);
+}
+
+.playground-btn-small {
+    padding: 6px 10px;
+    font-size: 12px;
+    gap: 4px;
+}
+
+.playground-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.playground-output {
+    margin-top: 24px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 24px;
+}
+
+.playground-output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.playground-output-header label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.playground-output-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.playground-result {
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    min-height: 100px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.playground-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.playground-loading::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Playground Overlay Styles */
+.playground-overlay-actions {
+    position: absolute;
+    top: 8px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(var(--accent-rgb-light), 0.1);
+    border: 1px solid rgba(var(--accent-rgb-light), 0.3);
+    border-radius: 6px;
+    padding: 4px 8px;
+    backdrop-filter: blur(4px);
+    z-index: 10;
+}
+
+.dark-mode .playground-overlay-actions {
+    background: rgba(var(--accent-rgb-dark), 0.15);
+    border: 1px solid rgba(var(--accent-rgb-dark), 0.3);
+}
+
+.playground-overlay-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.playground-overlay-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.playground-overlay-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(var(--accent-rgb-light), 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-primary);
+}
+
+.dark-mode .playground-overlay-btn {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(var(--accent-rgb-dark), 0.3);
+    color: var(--text-primary);
+}
+
+.playground-overlay-btn:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: scale(1.1);
+}
+
+.playground-overlay-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .playground-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .playground-output-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .playground-output-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+    
+    .playground-overlay-buttons {
+        gap: 2px;
+    }
+    
+    .playground-overlay-btn {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .playground-overlay-btn svg {
+        width: 10px;
+        height: 10px;
+    }
+}

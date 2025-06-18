@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const favoritesBtn = document.getElementById('favorites-btn');
     const createPromptBtn = document.getElementById('create-prompt-btn');
     const allPromptsBtn = document.getElementById('all-prompts-btn');
+    const playgroundBtn = document.getElementById('playground-btn');
     const addPromptModal = document.getElementById('add-prompt-modal');
     const settingsModal = document.getElementById('settings-modal');
     const closeModalBtn = addPromptModal.querySelector('.close-btn');
@@ -20,6 +21,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyFeedback = document.getElementById('copy-feedback');
     const modalTitle = document.getElementById('modal-title');
     const contentTitle = document.querySelector('.content-title');
+    
+    // Playground Elements
+    const playgroundContainer = document.getElementById('playground-container');
+    const promptListContainer = document.querySelector('.prompt-list-container');
+    const playgroundPurposeSelect = document.getElementById('playground-purpose');
+    const playgroundModelSelect = document.getElementById('playground-model');
+    const playgroundInputTextarea = document.getElementById('playground-input');
+    const playgroundOptimizeBtn = document.getElementById('playground-optimize-btn');
+    const playgroundClearBtn = document.getElementById('playground-clear-btn');
+    const playgroundOverlayActions = document.getElementById('playground-overlay-actions');
+    const playgroundCopyBtn = document.getElementById('playground-copy-btn');
+    const playgroundSaveBtn = document.getElementById('playground-save-btn');
+    const playgroundDownloadBtn = document.getElementById('playground-download-btn');
+    const playgroundRetryBtn = document.getElementById('playground-retry-btn');
+    const playgroundRestoreBtn = document.getElementById('playground-restore-btn');
     
     // AI Enhancement Elements
     const panelEnhanceBtn = document.getElementById('panel-enhance-btn');
@@ -43,6 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let allPrompts = []; // Cache all prompts to avoid frequent storage reads
     let currentSort = 'createdAtDesc'; // Placeholder for future sorting
     let isFavoritesViewActive = false; // State for favorites filter
+    
+    // Playground State
+    let currentOptimizedPrompt = ''; // Store the current optimized prompt
+    let currentOriginalPrompt = ''; // Store the original prompt for comparison
 
     // --- Dark Mode --- 
     const applyDarkMode = (isEnabled) => {
@@ -1160,11 +1180,211 @@ document.addEventListener('DOMContentLoaded', () => {
         hideAutocomplete();
     };
 
+    // --- View Management ---
+    const showPromptList = () => {
+        promptListContainer.style.display = 'block';
+        playgroundContainer.style.display = 'none';
+    };
+    
+    const showPlayground = () => {
+        promptListContainer.style.display = 'none';
+        playgroundContainer.style.display = 'block';
+    };
+
+    // --- Playground Functionality ---
+    const clearPlaygroundForm = () => {
+        playgroundPurposeSelect.value = '';
+        playgroundModelSelect.value = '';
+        playgroundInputTextarea.value = '';
+        playgroundInputTextarea.classList.remove('optimized');
+        playgroundOverlayActions.style.display = 'none';
+        currentOptimizedPrompt = '';
+        currentOriginalPrompt = '';
+    };
+
+    const showPlaygroundLoading = (isLoading) => {
+        if (isLoading) {
+            playgroundOptimizeBtn.disabled = true;
+            playgroundOptimizeBtn.dataset.originalText = playgroundOptimizeBtn.textContent;
+            playgroundOptimizeBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                </svg>
+                Processing...
+            `;
+            playgroundInputTextarea.value = 'Optimizing your prompt...';
+            playgroundInputTextarea.disabled = true;
+        } else {
+            playgroundOptimizeBtn.disabled = false;
+            playgroundOptimizeBtn.innerHTML = playgroundOptimizeBtn.dataset.originalText || `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                </svg>
+                Optimize Prompt
+            `;
+            playgroundInputTextarea.disabled = false;
+        }
+    };
+
+    const restoreOriginalPrompt = () => {
+        if (currentOriginalPrompt) {
+            playgroundInputTextarea.value = currentOriginalPrompt;
+            playgroundInputTextarea.classList.remove('optimized');
+            playgroundOverlayActions.style.display = 'none';
+            currentOptimizedPrompt = '';
+        }
+    };
+
+    const optimizePlaygroundPrompt = async () => {
+        const purpose = playgroundPurposeSelect.value;
+        const model = playgroundModelSelect.value;
+        const inputText = playgroundInputTextarea.value.trim();
+
+        // Validation
+        if (!purpose) {
+            alert('Please select a use case.');
+            return;
+        }
+        if (!model) {
+            alert('Please select a target model.');
+            return;
+        }
+        if (!inputText) {
+            alert('Please enter a prompt to optimize.');
+            return;
+        }
+
+        try {
+            showPlaygroundLoading(true);
+            currentOriginalPrompt = inputText;
+
+            if (!window.openRouterApi) {
+                throw new Error('OpenRouter API not available');
+            }
+
+            const hasKey = await window.openRouterApi.hasApiKey();
+            if (!hasKey) {
+                alert('Please add your OpenRouter API key in settings first.');
+                openModal(settingsModal);
+                showPlaygroundLoading(false);
+                return;
+            }
+
+            console.log('Optimizing prompt for:', model, 'purpose:', purpose);
+            const optimizedText = await window.openRouterApi.optimizePromptForModel(inputText, model, purpose);
+            console.log('Received optimized text:', optimizedText.substring(0, 50) + '...');
+
+            currentOptimizedPrompt = optimizedText;
+            playgroundInputTextarea.value = optimizedText;
+            playgroundInputTextarea.classList.add('optimized');
+            playgroundOverlayActions.style.display = 'flex';
+            showPlaygroundLoading(false);
+
+        } catch (error) {
+            console.error('Error optimizing prompt:', error);
+            alert(`Error optimizing prompt: ${error.message}`);
+            showPlaygroundLoading(false);
+        }
+    };
+
+    const savePlaygroundPrompt = () => {
+        if (!currentOptimizedPrompt) {
+            alert('No optimized prompt to save.');
+            return;
+        }
+
+        const purpose = playgroundPurposeSelect.value;
+        const model = playgroundModelSelect.value;
+        const timestamp = new Date().toISOString();
+        
+        const title = `${purpose.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} for ${model.toUpperCase()}`;
+        
+        const newPrompt = {
+            id: Date.now().toString(),
+            title,
+            text: currentOptimizedPrompt,
+            category: 'Playground',
+            tags: ['playground', purpose, model, 'optimized'],
+            favorite: false,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            metadata: {
+                originalPrompt: currentOriginalPrompt,
+                optimizedFor: model,
+                useCase: purpose,
+                source: 'playground'
+            }
+        };
+
+        getPrompts(prompts => {
+            prompts.push(newPrompt);
+            savePrompts(prompts, () => {
+                alert('Prompt saved to library!');
+                console.log('Playground prompt saved:', newPrompt);
+            });
+        });
+    };
+
+    const downloadPlaygroundPrompt = (format = 'txt') => {
+        if (!currentOptimizedPrompt) {
+            alert('No optimized prompt to download.');
+            return;
+        }
+
+        const purpose = playgroundPurposeSelect.value;
+        const model = playgroundModelSelect.value;
+        const timestamp = new Date().toISOString().split('T')[0];
+        
+        let content, filename, mimeType;
+        
+        if (format === 'md') {
+            content = `# Optimized Prompt for ${model.toUpperCase()}
+
+**Use Case:** ${purpose.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+**Target Model:** ${model.toUpperCase()}
+**Created:** ${new Date().toLocaleDateString()}
+
+## Original Prompt
+\`\`\`
+${currentOriginalPrompt}
+\`\`\`
+
+## Optimized Prompt
+\`\`\`
+${currentOptimizedPrompt}
+\`\`\`
+
+---
+*Generated with Alexandria Prompt Library*`;
+            filename = `optimized-prompt-${model}-${timestamp}.md`;
+            mimeType = 'text/markdown';
+        } else {
+            content = currentOptimizedPrompt;
+            filename = `optimized-prompt-${model}-${timestamp}.txt`;
+            mimeType = 'text/plain';
+        }
+
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        
+        document.body.appendChild(a);
+        a.click();
+        
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
+    };
+
     // Menu navigation
     if (favoritesBtn) {
         favoritesBtn.addEventListener('click', () => {
             setActiveMenuItem(favoritesBtn);
             isFavoritesViewActive = true;
+            showPromptList();
             filterAndRenderPrompts();
         });
     }
@@ -1173,7 +1393,15 @@ document.addEventListener('DOMContentLoaded', () => {
         allPromptsBtn.addEventListener('click', () => {
             setActiveMenuItem(allPromptsBtn);
             isFavoritesViewActive = false;
+            showPromptList();
             filterAndRenderPrompts();
+        });
+    }
+    
+    if (playgroundBtn) {
+        playgroundBtn.addEventListener('click', () => {
+            setActiveMenuItem(playgroundBtn);
+            showPlayground();
         });
     }
 
@@ -1183,5 +1411,41 @@ document.addEventListener('DOMContentLoaded', () => {
             setActiveMenuItem(profileBtn);
             alert('Profile functionality will be available in a future update.');
         });
+    }
+
+    // --- Playground Event Listeners ---
+    if (playgroundOptimizeBtn) {
+        playgroundOptimizeBtn.addEventListener('click', optimizePlaygroundPrompt);
+    }
+
+    if (playgroundClearBtn) {
+        playgroundClearBtn.addEventListener('click', clearPlaygroundForm);
+    }
+
+    if (playgroundCopyBtn) {
+        playgroundCopyBtn.addEventListener('click', () => {
+            copyPromptText(currentOptimizedPrompt);
+        });
+    }
+
+    if (playgroundSaveBtn) {
+        playgroundSaveBtn.addEventListener('click', savePlaygroundPrompt);
+    }
+
+    if (playgroundDownloadBtn) {
+        playgroundDownloadBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Show a simple context menu or just default to .md format
+            const format = confirm('Download as Markdown? (Cancel for plain text)') ? 'md' : 'txt';
+            downloadPlaygroundPrompt(format);
+        });
+    }
+
+    if (playgroundRetryBtn) {
+        playgroundRetryBtn.addEventListener('click', optimizePlaygroundPrompt);
+    }
+
+    if (playgroundRestoreBtn) {
+        playgroundRestoreBtn.addEventListener('click', restoreOriginalPrompt);
     }
 });
