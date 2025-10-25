@@ -1,5 +1,5 @@
 // OpenRouter API Integration for Alexandria
-// Uses the deepseek/deepseek-chat-v3-0324:free model
+// Uses the google/gemini-2.5-flash model
 
 // Store API key in local storage to avoid hardcoding
 const getApiKey = () => {
@@ -38,7 +38,7 @@ const enhancePrompt = async (promptText) => {
         
         console.log('Making API request to OpenRouter...');
         const requestBody = {
-            model: 'deepseek/deepseek-chat-v3-0324:free',
+            model: 'google/gemini-2.5-flash',
             messages: [
                 {
                     role: 'system',
@@ -205,7 +205,7 @@ const optimizePromptForModel = async (promptText, modelType, purpose) => {
         console.log('Using system prompt:', systemPrompt);
         
         const requestBody = {
-            model: 'deepseek/deepseek-chat-v3-0324:free',
+            model: 'google/gemini-2.5-flash',
             messages: [
                 {
                     role: 'system',

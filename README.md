@@ -15,7 +15,15 @@ A personal AI prompt management tool that helps you organize, categorize, and qu
 - **Quick Copy**: Click any prompt to copy its text to clipboard
 - **Search & Filter**: Find prompts by text, tags, or category
 - **Hover Preview**: Hover over prompts to view full content
-- **New**: Import/export all prompts as JSON files
+- **Import/Export**: Transfer all prompts as JSON files
+- **OpenRouter API Integration**: Connect to OpenRouter API for access to various AI models
+- **Markdown Support**: Write and view prompts with Markdown formatting
+- **Chat History**: Save and review your conversation history with AI models
+- **Template Variables**: Create dynamic prompts with customizable variables
+- **Bulk Operations**: Perform actions on multiple prompts simultaneously
+- **Cloud Sync**: Synchronize your prompts across devices
+- **Custom Shortcuts**: Configure keyboard shortcuts for common actions
+- **Analytics Dashboard**: Track prompt usage and performance metrics
 
 ## Installation
 
@@ -37,7 +45,9 @@ A personal AI prompt management tool that helps you organize, categorize, and qu
 
 This extension uses:
 - Chrome's Storage API for data persistence
-- Vanilla JavaScript for functionality
+- Vanilla JavaScript for functionality, including:
+  - `openrouter-api.js` for OpenRouter API communication
+  - `markdown-parser.js` for Markdown rendering
 - CSS variables for theming
 - JSON import/export for data portability
 
