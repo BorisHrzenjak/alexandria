@@ -2,7 +2,8 @@
 
 A personal AI prompt management tool that helps you organize, categorize, and quickly access your frequently used prompts.
 
-![image](https://github.com/user-attachments/assets/22b57b01-1cdb-4ef1-9422-6fe01a8c70bb)
+![image](https://github.com/user-attachments/assets/ad61fe2f-0d52-4e31-891f-c52a9b057b0c)
+
 
 
 
@@ -15,15 +16,7 @@ A personal AI prompt management tool that helps you organize, categorize, and qu
 - **Quick Copy**: Click any prompt to copy its text to clipboard
 - **Search & Filter**: Find prompts by text, tags, or category
 - **Hover Preview**: Hover over prompts to view full content
-- **Import/Export**: Transfer all prompts as JSON files
-- **OpenRouter API Integration**: Connect to OpenRouter API for access to various AI models
-- **Markdown Support**: Write and view prompts with Markdown formatting
-- **Chat History**: Save and review your conversation history with AI models
-- **Template Variables**: Create dynamic prompts with customizable variables
-- **Bulk Operations**: Perform actions on multiple prompts simultaneously
-- **Cloud Sync**: Synchronize your prompts across devices
-- **Custom Shortcuts**: Configure keyboard shortcuts for common actions
-- **Analytics Dashboard**: Track prompt usage and performance metrics
+- **New**: Import/export all prompts as JSON files
 
 ## Installation
 
