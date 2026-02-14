@@ -1419,19 +1419,24 @@ input:checked+.slider:before {
     padding: 20px;
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    max-width: 100%;
 }
 
 .dashboard-grid {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 /* Hero Stats Row */
 .dashboard-hero-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
 }
 
 .stat-card {
@@ -1560,7 +1565,8 @@ input:checked+.slider:before {
 .dashboard-row-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    gap: 16px;
+    min-width: 0;
 }
 
 /* Top Prompts List */
