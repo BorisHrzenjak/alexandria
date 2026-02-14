@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +14,7 @@
     <!-- OpenRouter API Integration -->
     <script src="openrouter-api.js"></script>
 </head>
+
 <body>
     <div class="container">
         <!-- Copy Feedback Message -->
@@ -23,17 +25,20 @@
             <div class="sidebar" id="sidebar">
                 <div class="sidebar-header">
                     <div class="sidebar-icon">
-                        <img src="icons/logo.png" alt="Alexandria Logo" width="24" height="24" style="display: block;" />
+                        <img src="icons/logo.png" alt="Alexandria Logo" width="24" height="24"
+                            style="display: block;" />
                     </div>
                     <span class="sidebar-title">Alexandria</span>
                 </div>
-                
+
                 <div class="sidebar-section">
                     <h3 class="section-title">Menu</h3>
                     <div class="menu-items">
                         <div class="menu-item" id="create-prompt-btn">
                             <div class="menu-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                                     <line x1="16" y1="2" x2="16" y2="6"></line>
                                     <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -44,15 +49,21 @@
                         </div>
                         <div class="menu-item" id="favorites-btn">
                             <div class="menu-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 2 L15.09 8.26 L22 9.27 L17 14.14 L18.18 21.02 L12 17.77 L5.82 21.02 L7 14.14 L2 9.27 L8.91 8.26 L12 2 Z"></path>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path
+                                        d="M12 2 L15.09 8.26 L22 9.27 L17 14.14 L18.18 21.02 L12 17.77 L5.82 21.02 L7 14.14 L2 9.27 L8.91 8.26 L12 2 Z">
+                                    </path>
                                 </svg>
                             </div>
                             <span class="menu-text">Favorites</span>
                         </div>
                         <div class="menu-item" id="all-prompts-btn">
                             <div class="menu-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                                 </svg>
                             </div>
@@ -60,8 +71,12 @@
                         </div>
                         <div class="menu-item" id="playground-btn">
                             <div class="menu-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path
+                                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                                    </path>
                                 </svg>
                             </div>
                             <span class="menu-text">Playground</span>
@@ -74,21 +89,29 @@
                     <div class="menu-items">
                         <div class="menu-item" id="settings-btn">
                             <div class="menu-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="3"></circle>
-                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                    </path>
                                 </svg>
                             </div>
                             <span class="menu-text">Settings</span>
                         </div>
-                        <div class="menu-item" id="profile-btn">
+                        <div class="menu-item" id="dashboard-btn">
                             <div class="menu-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="9"></rect>
+                                    <rect x="14" y="3" width="7" height="5"></rect>
+                                    <rect x="14" y="12" width="7" height="9"></rect>
+                                    <rect x="3" y="16" width="7" height="5"></rect>
                                 </svg>
                             </div>
-                            <span class="menu-text">Profile</span>
+                            <span class="menu-text">Dashboard</span>
                         </div>
                     </div>
                 </div>
@@ -97,9 +120,12 @@
             <!-- Main Content Area -->
             <div class="main-content">
                 <div class="content-header">
+
                     <div class="search-container">
                         <div class="search-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
@@ -125,7 +151,7 @@
                 <!-- Playground Interface (hidden by default) -->
                 <div class="playground-container" id="playground-container" style="display: none;">
                     <h2 class="content-title">Prompt Playground</h2>
-                    
+
                     <div class="playground-form">
                         <div class="playground-row">
                             <div class="playground-field">
@@ -143,7 +169,7 @@
                                     <option value="educational">Educational Content</option>
                                 </select>
                             </div>
-                            
+
                             <div class="playground-field">
                                 <label for="playground-model">Target Model:</label>
                                 <select id="playground-model" class="playground-select">
@@ -169,42 +195,62 @@
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="playground-field">
                             <label for="playground-input">Your Prompt:</label>
                             <div class="playground-textarea-container">
-                                <textarea id="playground-input" class="playground-textarea" placeholder="Enter your initial prompt here..." rows="8"></textarea>
-                                <div class="playground-overlay-actions" id="playground-overlay-actions" style="display: none;">
+                                <textarea id="playground-input" class="playground-textarea"
+                                    placeholder="Enter your initial prompt here..." rows="8"></textarea>
+                                <div class="playground-overlay-actions" id="playground-overlay-actions"
+                                    style="display: none;">
                                     <div class="playground-overlay-label">Optimized Prompt</div>
                                     <div class="playground-overlay-buttons">
-                                        <button id="playground-copy-btn" class="playground-overlay-btn" title="Copy to Clipboard">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <button id="playground-copy-btn" class="playground-overlay-btn"
+                                            title="Copy to Clipboard">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
                                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1">
+                                                </path>
                                             </svg>
                                         </button>
-                                        <button id="playground-save-btn" class="playground-overlay-btn" title="Save to Library">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                        <button id="playground-save-btn" class="playground-overlay-btn"
+                                            title="Save to Library">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path
+                                                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z">
+                                                </path>
                                                 <polyline points="17,21 17,13 7,13 7,21"></polyline>
                                                 <polyline points="7,3 7,8 15,8"></polyline>
                                             </svg>
                                         </button>
-                                        <button id="playground-download-btn" class="playground-overlay-btn" title="Download">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <button id="playground-download-btn" class="playground-overlay-btn"
+                                            title="Download">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                                 <polyline points="7,10 12,15 17,10"></polyline>
                                                 <line x1="12" y1="15" x2="12" y2="3"></line>
                                             </svg>
                                         </button>
-                                        <button id="playground-retry-btn" class="playground-overlay-btn" title="Try Again">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <button id="playground-retry-btn" class="playground-overlay-btn"
+                                            title="Try Again">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
                                                 <polyline points="23,4 23,10 17,10"></polyline>
                                                 <path d="M20.49,15A9,9,0,1,1,5.64,5.64L23,10"></path>
                                             </svg>
                                         </button>
-                                        <button id="playground-restore-btn" class="playground-overlay-btn" title="Restore Original">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <button id="playground-restore-btn" class="playground-overlay-btn"
+                                            title="Restore Original">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
                                                 <polyline points="1,4 1,10 7,10"></polyline>
                                                 <path d="M3.51,15A9,9,0,1,0,18.36,5.64L1,10"></path>
                                             </svg>
@@ -213,15 +259,93 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="playground-actions">
                             <button id="playground-optimize-btn" class="playground-btn playground-btn-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path
+                                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                                    </path>
                                 </svg>
                                 Optimize Prompt
                             </button>
-                            <button id="playground-clear-btn" class="playground-btn playground-btn-secondary">Clear</button>
+                            <button id="playground-clear-btn"
+                                class="playground-btn playground-btn-secondary">Clear</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard View (hidden by default) -->
+                <div class="dashboard-container" id="dashboard-container" style="display: none;">
+                    <h2 class="content-title">Library Analytics</h2>
+
+                    <div class="dashboard-grid">
+                        <!-- Hero Stats -->
+                        <div class="dashboard-hero-row">
+                            <div class="stat-card" id="stat-total-prompts">
+                                <div class="stat-label">Total Prompts</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-icon">📚</div>
+                            </div>
+                            <div class="stat-card" id="stat-total-usage">
+                                <div class="stat-label">Total Uses</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-icon">🖱️</div>
+                            </div>
+                            <div class="stat-card" id="stat-favorites">
+                                <div class="stat-label">Favorites</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-icon">🌟</div>
+                            </div>
+                            <div class="stat-card" id="stat-avg-length">
+                                <div class="stat-label">Avg Length</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-desc">chars</div>
+                            </div>
+                        </div>
+
+                        <!-- Top Categories (full-width) -->
+                        <div class="dashboard-section">
+                            <h3>Top Categories</h3>
+                            <div class="category-bars-container" id="category-bars">
+                                <!-- Bars generated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Insights Row -->
+                        <div class="dashboard-row-split">
+                            <div class="dashboard-column">
+                                <h3>Most Used Prompts</h3>
+                                <ul class="dashboard-list" id="top-prompts-list">
+                                    <!-- Items generated by JS -->
+                                </ul>
+                            </div>
+
+                            <div class="dashboard-column">
+                                <h3>Activity (Last 14 Days)</h3>
+                                <div class="activity-graph-container" id="activity-graph">
+                                    <!-- Bars generated by JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-row-split">
+                            <div class="dashboard-column">
+                                <h3>Recently Used</h3>
+                                <div class="recent-prompt-card" id="last-used-card">
+                                    <div class="recent-prompt-title">No recent activity</div>
+                                    <div class="recent-prompt-time">-</div>
+                                </div>
+                            </div>
+                            <div class="dashboard-column">
+                                <div class="growth-stat">
+                                    <h3>Growth</h3>
+                                    <div class="growth-value" id="growth-week">0</div>
+                                    <div class="growth-label">New prompts this week</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -248,6 +372,8 @@
             </div>
         </div>
     </div>
+
+
 
     <!-- Add Prompt Modal (hidden by default) -->
     <div id="add-prompt-modal" class="modal">
@@ -302,8 +428,10 @@
             <div class="setting-item">
                 <label>Prompt Data:</label>
                 <div class="import-export-buttons">
-                    <button id="export-prompts-btn" class="settings-btn" title="Export prompts to a file">Export Prompts</button>
-                    <button id="import-prompts-btn" class="settings-btn" title="Import prompts from a file">Import Prompts</button>
+                    <button id="export-prompts-btn" class="settings-btn" title="Export prompts to a file">Export
+                        Prompts</button>
+                    <button id="import-prompts-btn" class="settings-btn" title="Import prompts from a file">Import
+                        Prompts</button>
                 </div>
                 <input type="file" id="import-file-input" accept=".json" style="display: none;">
             </div>
@@ -316,8 +444,10 @@
                 </div>
                 <div class="api-key-info">
                     <p class="setting-description">Required for AI prompt enhancement feature.</p>
-                    <p class="setting-description">This key enables the AI to improve your prompts with advanced language models.</p>
-                    <p class="setting-description">Get your free API key at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></p>
+                    <p class="setting-description">This key enables the AI to improve your prompts with advanced
+                        language models.</p>
+                    <p class="setting-description">Get your free API key at <a href="https://openrouter.ai/keys"
+                            target="_blank">openrouter.ai/keys</a></p>
                 </div>
             </div>
         </div>
@@ -341,4 +471,5 @@
 
     <script src="popup.js"></script>
 </body>
+
 </html>

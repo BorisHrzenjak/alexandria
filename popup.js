@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Alexandria popup loaded.');
-    
+
     // DOM Elements
     const body = document.body;
     const sidebar = document.getElementById('sidebar');
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyFeedback = document.getElementById('copy-feedback');
     const modalTitle = document.getElementById('modal-title');
     const contentTitle = document.querySelector('.content-title');
-    
+
     // Playground Elements
     const playgroundContainer = document.getElementById('playground-container');
     const promptListContainer = document.querySelector('.prompt-list-container');
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playgroundDownloadBtn = document.getElementById('playground-download-btn');
     const playgroundRetryBtn = document.getElementById('playground-retry-btn');
     const playgroundRestoreBtn = document.getElementById('playground-restore-btn');
-    
+
     // AI Enhancement Elements
     const panelEnhanceBtn = document.getElementById('panel-enhance-btn');
     const modalEnhanceBtn = document.getElementById('modal-enhance-btn');
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allPrompts = []; // Cache all prompts to avoid frequent storage reads
     let currentSort = 'createdAtDesc'; // Placeholder for future sorting
     let isFavoritesViewActive = false; // State for favorites filter
-    
+
     // Playground State
     let currentOptimizedPrompt = ''; // Store the current optimized prompt
     let currentOriginalPrompt = ''; // Store the original prompt for comparison
@@ -112,9 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateCategoryFilter = (prompts) => {
         const categories = [...new Set(prompts.map(p => p.category).filter(Boolean))].sort(); // Get unique, sorted categories
         const currentSelection = categoryFilter.value;
-        
+
         // Clear existing options except 'All'
-        categoryFilter.innerHTML = '<option value="all">All Categories</option>'; 
+        categoryFilter.innerHTML = '<option value="all">All Categories</option>';
 
         categories.forEach(category => {
             const option = document.createElement('option');
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryFilter.value = 'all'; // Default back to 'all' if previous selection is gone
         }
     };
-    
+
     const renderPromptList = (promptsToRender) => {
         promptListUl.innerHTML = ''; // Clear existing list
 
@@ -144,19 +144,19 @@ document.addEventListener('DOMContentLoaded', () => {
             li.classList.add('prompt-item');
             li.dataset.promptId = prompt.id;
 
-            const tagsHtml = prompt.tags.length > 0 ? 
+            const tagsHtml = prompt.tags.length > 0 ?
                 `<div class="prompt-item-meta">
                     ${prompt.tags.map(tag => `<span class="prompt-item-tags">#${escapeHtml(tag)}</span>`).join('')}
                 </div>` : '';
-                
-            const categoryHtml = prompt.category ? 
+
+            const categoryHtml = prompt.category ?
                 `<div class="prompt-item-meta">
                     <span class="prompt-item-category">${escapeHtml(prompt.category)}</span>
                 </div>` : '';
 
             // Create a preview of the prompt text (first 100 chars)
-            const previewText = prompt.text.length > 100 ? 
-                prompt.text.substring(0, 100) + '...' : 
+            const previewText = prompt.text.length > 100 ?
+                prompt.text.substring(0, 100) + '...' :
                 prompt.text;
 
             li.innerHTML = `
@@ -184,12 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 deletePrompt(prompt.id);
             });
-            
+
             li.querySelector('.favorite-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 toggleFavorite(prompt.id);
             });
-            
+
             li.querySelector('.view-btn').addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent triggering li click (copy)
                 panelTitle.textContent = prompt.title;
@@ -212,9 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 panelKeepBtn.classList.add('hidden'); // Hide keep button initially
                 promptViewPanel.classList.add('active');
             });
-            
+
             li.addEventListener('click', () => {
-                copyPromptText(prompt.text); 
+                copyPromptText(prompt.text);
             });
 
             promptListUl.appendChild(li);
@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tagsMatch = prompt.tags.some(tag => tag.toLowerCase().includes(searchTerm));
                 const categoryMatch = (selectedCategory === 'all' || prompt.category === selectedCategory);
                 const searchMatch = searchTerm ? (titleMatch || textMatch || tagsMatch) : true;
-                
+
                 return categoryMatch && searchMatch;
             });
 
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadDarkModePreference();
         loadOpenRouterApiKey();
     };
-    
+
     // --- OpenRouter API Integration ---
     const loadOpenRouterApiKey = () => {
         if (window.openRouterApi) {
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     };
-    
+
     // Function to show loading state on buttons
     const setButtonLoading = (button, isLoading) => {
         if (isLoading) {
@@ -292,16 +292,16 @@ document.addEventListener('DOMContentLoaded', () => {
             button.textContent = button.dataset.originalText || button.textContent;
         }
     };
-    
+
     // Function to enhance prompt text with AI
     const enhancePromptWithAI = async (promptText, resultCallback, buttonElement) => {
         try {
             console.log('Enhancing prompt:', promptText.substring(0, 50) + '...');
-            
+
             if (!window.openRouterApi) {
                 throw new Error('OpenRouter API not available');
             }
-            
+
             const hasKey = await window.openRouterApi.hasApiKey();
             if (!hasKey) {
                 alert('Please add your OpenRouter API key in settings first.');
@@ -312,18 +312,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return;
             }
-            
+
             console.log('API key verified, calling enhancePrompt...');
             const enhancedText = await window.openRouterApi.enhancePrompt(promptText);
             console.log('Received enhanced text:', enhancedText.substring(0, 50) + '...');
-            
+
             if (resultCallback && typeof resultCallback === 'function') {
                 resultCallback(enhancedText);
             }
         } catch (error) {
             console.error('Error enhancing prompt:', error);
             alert(`Error enhancing prompt: ${error.message}`);
-            
+
             // Reset button state if provided
             if (buttonElement) {
                 setButtonLoading(buttonElement, false);
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchInput) {
         searchInput.addEventListener('input', filterAndRenderPrompts);
     }
-    
+
     if (categoryFilter) {
         categoryFilter.addEventListener('change', filterAndRenderPrompts);
     }
@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.menu-item').forEach(item => {
             item.classList.remove('active');
         });
-        
+
         // Add active class to the clicked menu item
         if (activeItem) {
             activeItem.classList.add('active');
@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Autocomplete Functionality ---
-    
+
     // Autocomplete state
     let autocompleteVisible = false;
     let autocompleteFocusIndex = -1;
@@ -446,9 +446,9 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const renderAutocompleteSuggestions = (suggestions, searchTerm = '') => {
         const dropdown = document.getElementById('tags-autocomplete');
-        
+
         if (!dropdown) return;
-        
+
         if (!suggestions || suggestions.length === 0) {
             dropdown.innerHTML = '<div class="autocomplete-no-results">No matching tags found</div>';
             return;
@@ -537,29 +537,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectAutocompleteItem = (selectedTag) => {
         const tagsInput = document.getElementById('prompt-tags');
         if (!tagsInput) return;
-        
+
         const currentValue = tagsInput.value;
         const tags = currentValue.split(',').map(tag => tag.trim()).filter(Boolean);
-        
+
         // Remove the last partial tag if it exists
         const lastTag = getLastPartialTag(currentValue);
         if (lastTag) {
             tags.pop(); // Remove the partial tag
         }
-        
+
         // Add the selected tag
         tags.push(selectedTag);
-        
+
         // Join back and add trailing comma and space for next tag
         tagsInput.value = tags.join(', ') + ', ';
-        
+
         // Hide autocomplete and focus back to input
         hideAutocomplete();
         tagsInput.focus();
-        
+
         // Position cursor at the end
         tagsInput.setSelectionRange(tagsInput.value.length, tagsInput.value.length);
-        
+
         // Trigger input event to potentially show autocomplete for next tag
         setTimeout(() => {
             const event = new Event('input', { bubbles: true });
@@ -573,14 +573,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleAutocompleteInput = debounce((event) => {
         const inputValue = event.target.value;
         const lastTag = getLastPartialTag(inputValue);
-        
+
         if (!lastTag || lastTag.length < 1) {
             hideAutocomplete();
             return;
         }
 
         const suggestions = getAutocompleteSuggestions(inputValue);
-        
+
         if (suggestions.length > 0) {
             renderAutocompleteSuggestions(suggestions, lastTag);
             showAutocomplete();
@@ -593,15 +593,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const populateDropdowns = () => {
         const existingCategoriesSelect = document.getElementById('existing-categories');
         const existingTagsSelect = document.getElementById('existing-tags');
-        
+
         // Clear existing options
         existingCategoriesSelect.innerHTML = '<option value="">Select existing category</option>';
         existingTagsSelect.innerHTML = '<option value="">Select existing tags</option>';
-        
+
         // Get unique categories and tags
         const categories = [...new Set(allPrompts.map(p => p.category).filter(Boolean))].sort();
         const tags = getAllUniqueTags();
-        
+
         // Populate categories dropdown
         categories.forEach(category => {
             const option = document.createElement('option');
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
             option.textContent = category;
             existingCategoriesSelect.appendChild(option);
         });
-        
+
         // Populate tags dropdown
         tags.forEach(tag => {
             const option = document.createElement('option');
@@ -618,15 +618,15 @@ document.addEventListener('DOMContentLoaded', () => {
             existingTagsSelect.appendChild(option);
         });
     };
-    
+
     // Handle existing tag selection
     document.getElementById('existing-tags').addEventListener('change', (e) => {
         const selectedTag = e.target.value;
         if (!selectedTag) return;
-        
+
         const tagsInput = document.getElementById('prompt-tags');
         const currentTags = tagsInput.value.split(',').map(tag => tag.trim()).filter(Boolean);
-        
+
         // Only add if not already in the list
         if (!currentTags.includes(selectedTag)) {
             if (currentTags.length > 0 && currentTags[0] !== '') {
@@ -635,16 +635,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 tagsInput.value = selectedTag;
             }
         }
-        
+
         // Reset the dropdown
         e.target.value = '';
-        
+
         // Hide autocomplete if visible
         hideAutocomplete();
     });
 
     // --- Autocomplete Event Listeners ---
-    
+
     // Enhanced tags input handling with autocomplete
     const tagsInput = document.getElementById('prompt-tags');
 
@@ -707,21 +707,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         const tagsInput = document.getElementById('prompt-tags');
         const autocompleteDropdown = document.getElementById('tags-autocomplete');
-        
-        if (tagsInput && autocompleteDropdown && 
-            !tagsInput.contains(e.target) && 
+
+        if (tagsInput && autocompleteDropdown &&
+            !tagsInput.contains(e.target) &&
             !autocompleteDropdown.contains(e.target)) {
             hideAutocomplete();
         }
     });
-    
+
     // Handle existing category selection
     document.getElementById('existing-categories').addEventListener('change', (e) => {
         const selectedCategory = e.target.value;
         if (!selectedCategory) return;
-        
+
         document.getElementById('prompt-category').value = selectedCategory;
-        
+
         // Reset the dropdown
         e.target.value = '';
     });
@@ -731,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.add('active');
         populateDropdowns(); // Refresh dropdowns when opening modal
     };
-    
+
     const closeModal = (modal) => {
         modal.classList.remove('active');
     };
@@ -741,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setActiveMenuItem(settingsBtn);
         openModal(settingsModal);
     });
-    
+
     // Save OpenRouter API Key
     if (saveApiKeyBtn) {
         saveApiKeyBtn.addEventListener('click', async () => {
@@ -769,17 +769,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // Create a JSON blob
             const promptsJson = JSON.stringify(prompts, null, 2);
             const blob = new Blob([promptsJson], { type: 'application/json' });
-            
+
             // Create a download link
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `alexandria-prompts-${new Date().toISOString().split('T')[0]}.json`;
-            
+
             // Trigger download
             document.body.appendChild(a);
             a.click();
-            
+
             // Clean up
             setTimeout(() => {
                 document.body.removeChild(a);
@@ -802,45 +802,45 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (event) => {
             try {
                 const importedPrompts = JSON.parse(event.target.result);
-                
+
                 // Validate imported data structure
                 if (!Array.isArray(importedPrompts)) {
                     throw new Error('Invalid format: Expected an array of prompts');
                 }
-                
+
                 // Check if each prompt has required fields
                 const validPrompts = importedPrompts.filter(prompt => {
-                    return prompt && 
-                           typeof prompt.title === 'string' && 
-                           typeof prompt.text === 'string' &&
-                           prompt.id;
+                    return prompt &&
+                        typeof prompt.title === 'string' &&
+                        typeof prompt.text === 'string' &&
+                        prompt.id;
                 });
-                
+
                 if (validPrompts.length === 0) {
                     throw new Error('No valid prompts found in the imported file');
                 }
-                
+
                 // Ask user about import strategy
                 const importStrategy = confirm(
                     `Found ${validPrompts.length} prompts to import. Click OK to merge with existing prompts, or Cancel to replace all existing prompts.`
                 );
-                
+
                 if (importStrategy) {
                     // Merge: Add imported prompts to existing ones
                     getPrompts(existingPrompts => {
                         // Create a map of existing IDs to avoid duplicates
                         const existingIds = new Set(existingPrompts.map(p => p.id));
-                        
+
                         // Add only prompts with unique IDs
                         const newPrompts = [...existingPrompts];
                         let addedCount = 0;
-                        
+
                         validPrompts.forEach(prompt => {
                             // Generate a new ID if the imported one already exists
                             if (existingIds.has(prompt.id)) {
                                 prompt.id = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
                             }
-                            
+
                             // Ensure timestamps are valid
                             if (!prompt.createdAt) {
                                 prompt.createdAt = new Date().toISOString();
@@ -848,12 +848,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (!prompt.updatedAt) {
                                 prompt.updatedAt = new Date().toISOString();
                             }
-                            
+
                             newPrompts.push(prompt);
                             existingIds.add(prompt.id);
                             addedCount++;
                         });
-                        
+
                         // Save merged prompts
                         savePrompts(newPrompts, () => {
                             alert(`Successfully imported ${addedCount} prompts.`);
@@ -871,7 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             prompt.updatedAt = new Date().toISOString();
                         }
                     });
-                    
+
                     savePrompts(validPrompts, () => {
                         alert(`Successfully replaced prompts with ${validPrompts.length} imported prompts.`);
                         filterAndRenderPrompts();
@@ -881,16 +881,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Import error:', error);
                 alert(`Error importing prompts: ${error.message}`);
             }
-            
+
             // Reset file input
             importFileInput.value = '';
         };
-        
+
         reader.onerror = () => {
             alert('Error reading the file');
             importFileInput.value = '';
         };
-        
+
         reader.readAsText(file);
     });
 
@@ -917,7 +917,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.panel').forEach(panel => {
                 panel.classList.remove('active');
-                
+
                 // Reset panel state
                 currentPanelPromptId = '';
                 currentPanelPromptText = '';
@@ -932,40 +932,40 @@ document.addEventListener('DOMContentLoaded', () => {
         modalEnhanceBtn.addEventListener('click', () => {
             const textInput = document.getElementById('prompt-text');
             const promptText = textInput.value.trim();
-            
+
             if (!promptText) {
                 alert('Please enter some prompt text to enhance!');
                 return;
             }
-            
+
             setButtonLoading(modalEnhanceBtn, true);
-            
+
             enhancePromptWithAI(promptText, (enhancedText) => {
                 textInput.value = enhancedText;
                 setButtonLoading(modalEnhanceBtn, false);
             }, modalEnhanceBtn);
         });
     }
-    
+
     // Save prompt button
     savePromptBtn.addEventListener('click', () => {
         const titleInput = document.getElementById('prompt-title');
         const textInput = document.getElementById('prompt-text');
         const categoryInput = document.getElementById('prompt-category');
         const tagsInput = document.getElementById('prompt-tags');
-        
+
         const title = titleInput.value.trim();
         const text = textInput.value.trim();
         const category = categoryInput.value.trim();
         const tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(Boolean);
-        
+
         if (!title || !text) {
             alert('Title and prompt text are required!');
             return;
         }
-        
+
         const promptId = titleInput.dataset.promptId;
-        
+
         if (promptId) {
             // Edit existing prompt
             getPrompts(prompts => {
@@ -976,7 +976,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     prompts[index].category = category;
                     prompts[index].tags = tags;
                     prompts[index].updatedAt = new Date().toISOString();
-                    
+
                     savePrompts(prompts, () => {
                         closeModal(addPromptModal);
                         filterAndRenderPrompts();
@@ -995,7 +995,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-            
+
             getPrompts(prompts => {
                 prompts.push(newPrompt);
                 savePrompts(prompts, () => {
@@ -1036,11 +1036,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const regex = /{([^{}]+)}/g;
         const variables = new Set();
         let match;
-        
+
         while ((match = regex.exec(text)) !== null) {
             variables.add(match[1]);
         }
-        
+
         return Array.from(variables);
     };
 
@@ -1048,26 +1048,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderVariableInputs = (variables) => {
         const container = document.getElementById('variable-inputs-container');
         container.innerHTML = '';
-        
+
         variables.forEach(variable => {
             const group = document.createElement('div');
             group.className = 'variable-input-group';
-            
+
             const label = document.createElement('label');
             label.innerHTML = `Value for <span class="variable-name">{${escapeHtml(variable)}}</span>:`;
             label.htmlFor = `var-${variable}`;
-            
+
             const input = document.createElement('input');
             input.type = 'text';
             input.id = `var-${variable}`;
             input.dataset.variable = variable;
             input.placeholder = `Enter value for ${variable}...`;
-            
+
             // Auto-focus the first input
             if (variables.indexOf(variable) === 0) {
                 setTimeout(() => input.focus(), 100);
             }
-            
+
             // Allow Enter key to submit if it's the last input
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && variables.indexOf(variable) === variables.length - 1) {
@@ -1085,23 +1085,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const processVariableCopy = () => {
         let finalText = currentVariablePromptText;
         const inputs = document.querySelectorAll('#variable-inputs-container input');
-        
+
         inputs.forEach(input => {
             const variable = input.dataset.variable;
-            const value = input.value.trim(); // We use empty string if value is empty, effectively removing the placeholder or replacing with nothing
-            
-            // Replace all instances of {variable}
-            // Use a regex with global flag to replace all occurrences
-            // Escape special regex characters in the variable name just in case
+            const value = input.value.trim();
             const escapedVariable = variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const regex = new RegExp(`{${escapedVariable}}`, 'g');
             finalText = finalText.replace(regex, value);
         });
-        
-        // Copy the text
+
         navigator.clipboard.writeText(finalText).then(() => {
             closeModal(document.getElementById('variable-input-modal'));
             showCopyFeedback();
+            // Track usage if we have the ID (stored below)
+            if (processVariableCopy.targetPromptId) {
+                incrementUsage(processVariableCopy.targetPromptId);
+                processVariableCopy.targetPromptId = null; // Reset
+            }
         }).catch(err => {
             console.error('Failed to copy text: ', err);
             alert('Failed to copy to clipboard');
@@ -1116,30 +1116,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2000);
     };
 
-    // Copy prompt text (Modified to handle variables)
-    const copyPromptText = (text) => {
+    // Copy prompt text (Modified to handle variables and tracking)
+    const copyPromptText = (text, promptId = null) => { // Added promptId param
         const variables = extractVariables(text);
-        
-        if (variables.length > 0) {
-            // Variables found - open modal
-            currentVariablePromptText = text;
-            foundVariables = variables;
-            renderVariableInputs(variables);
-            openModal(document.getElementById('variable-input-modal'));
-        } else {
-            // No variables - standard copy
-            navigator.clipboard.writeText(text).then(() => {
+
+        let targetId = promptId;
+        // If promptId is not passed, try to find it in allPrompts by text (fallback)
+        if (!targetId) {
+            const found = allPrompts.find(p => p.text === text);
+            if (found) targetId = found.id;
+        }
+
+        const proceedWithCopy = (txt) => {
+            navigator.clipboard.writeText(txt).then(() => {
                 showCopyFeedback();
+                if (targetId) incrementUsage(targetId); // Track usage!
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
                 alert('Failed to copy to clipboard');
             });
+        };
+
+        if (variables.length > 0) {
+            // Variables found - open modal
+            currentVariablePromptText = text;
+            foundVariables = variables;
+            // Store targetId in the function object to pass it to the callback
+            processVariableCopy.targetPromptId = targetId;
+
+            renderVariableInputs(variables);
+            openModal(document.getElementById('variable-input-modal'));
+        } else {
+            // No variables - standard copy
+            proceedWithCopy(text);
         }
     };
 
     // Variable Modal Event Listeners
     document.getElementById('copy-with-values-btn')?.addEventListener('click', processVariableCopy);
-    
+
     document.getElementById('copy-raw-btn')?.addEventListener('click', () => {
         navigator.clipboard.writeText(currentVariablePromptText).then(() => {
             closeModal(document.getElementById('variable-input-modal'));
@@ -1154,16 +1169,16 @@ document.addEventListener('DOMContentLoaded', () => {
     panelCopyBtn.addEventListener('click', () => {
         copyPromptText(currentPanelPromptText);
     });
-    
+
     // Panel keep button - save enhanced prompt
     if (panelKeepBtn) {
         panelKeepBtn.addEventListener('click', () => {
             if (!isPromptEnhanced || !currentPanelPromptId) {
                 return; // Do nothing if prompt isn't enhanced or ID is missing
             }
-            
+
             setButtonLoading(panelKeepBtn, true);
-            
+
             // Update the prompt in storage
             getPrompts(prompts => {
                 const index = prompts.findIndex(p => p.id === currentPanelPromptId);
@@ -1171,32 +1186,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Update the prompt text with enhanced version
                     prompts[index].text = currentPanelPromptText;
                     prompts[index].updatedAt = new Date().toISOString();
-                    
+
                     // Create a copy of the updated prompt for later reference
-                    const updatedPrompt = {...prompts[index]};
-                    
+                    const updatedPrompt = { ...prompts[index] };
+
                     // Save the updated prompts
                     savePrompts(prompts, () => {
                         console.log('Enhanced prompt saved with ID:', currentPanelPromptId);
                         console.log('Updated prompt text:', currentPanelPromptText.substring(0, 50) + '...');
-                        
+
                         // Show feedback
                         alert('Enhanced prompt saved successfully!');
-                        
+
                         // Hide keep button and reset enhancement state
                         isPromptEnhanced = false;
                         panelKeepBtn.classList.add('hidden');
-                        
+
                         // Force a complete refresh of the UI
                         // 1. Refresh the prompt list
                         filterAndRenderPrompts();
-                        
+
                         // 2. Update the allPrompts cache directly to ensure consistency
                         const cacheIndex = allPrompts.findIndex(p => p.id === currentPanelPromptId);
                         if (cacheIndex !== -1) {
                             allPrompts[cacheIndex] = updatedPrompt;
                         }
-                        
+
                         setButtonLoading(panelKeepBtn, false);
                     });
                 } else {
@@ -1206,7 +1221,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-    
+
     // Panel enhance button
     if (panelEnhanceBtn) {
         panelEnhanceBtn.addEventListener('click', () => {
@@ -1214,9 +1229,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('No prompt text to enhance!');
                 return;
             }
-            
+
             setButtonLoading(panelEnhanceBtn, true);
-            
+
             enhancePromptWithAI(currentPanelPromptText, (enhancedText) => {
                 // Update the panel text with enhanced version
                 try {
@@ -1229,14 +1244,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Error parsing markdown:', error);
                     panelText.textContent = enhancedText;
                 }
-                
+
                 // Update the stored text for copying
                 currentPanelPromptText = enhancedText;
-                
+
                 // Show the keep button and mark as enhanced
                 isPromptEnhanced = true;
                 panelKeepBtn.classList.remove('hidden');
-                
+
                 setButtonLoading(panelEnhanceBtn, false);
             }, panelEnhanceBtn);
         });
@@ -1248,18 +1263,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const prompt = prompts.find(p => p.id === promptId);
             if (prompt) {
                 modalTitle.textContent = 'Edit Prompt';
-                
+
                 const titleInput = document.getElementById('prompt-title');
                 const textInput = document.getElementById('prompt-text');
                 const categoryInput = document.getElementById('prompt-category');
                 const tagsInput = document.getElementById('prompt-tags');
-                
+
                 titleInput.value = prompt.title;
                 titleInput.dataset.promptId = promptId; // Store ID for save
                 textInput.value = prompt.text;
                 categoryInput.value = prompt.category || '';
                 tagsInput.value = prompt.tags.join(', ');
-                
+
                 openModal(addPromptModal);
             }
         });
@@ -1284,7 +1299,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('prompt-tags').value = '';
         document.getElementById('existing-categories').value = '';
         document.getElementById('existing-tags').value = '';
-        
+
         // Hide autocomplete dropdown
         hideAutocomplete();
     };
@@ -1293,11 +1308,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const showPromptList = () => {
         promptListContainer.style.display = 'block';
         playgroundContainer.style.display = 'none';
+        const dc = document.getElementById('dashboard-container');
+        if (dc) dc.style.display = 'none';
+        const contentHeader = document.querySelector('.content-header');
+        if (contentHeader) contentHeader.style.display = 'flex';
     };
-    
+
     const showPlayground = () => {
         promptListContainer.style.display = 'none';
         playgroundContainer.style.display = 'block';
+        const dc = document.getElementById('dashboard-container');
+        if (dc) dc.style.display = 'none';
+        const contentHeader = document.querySelector('.content-header');
+        if (contentHeader) contentHeader.style.display = 'none';
     };
 
     // --- Playground Functionality ---
@@ -1405,9 +1428,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const purpose = playgroundPurposeSelect.value;
         const model = playgroundModelSelect.value;
         const timestamp = new Date().toISOString();
-        
+
         const title = `${purpose.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} for ${model.toUpperCase()}`;
-        
+
         const newPrompt = {
             id: Date.now().toString(),
             title,
@@ -1443,9 +1466,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const purpose = playgroundPurposeSelect.value;
         const model = playgroundModelSelect.value;
         const timestamp = new Date().toISOString().split('T')[0];
-        
+
         let content, filename, mimeType;
-        
+
         if (format === 'md') {
             content = `# Optimized Prompt for ${model.toUpperCase()}
 
@@ -1478,10 +1501,10 @@ ${currentOptimizedPrompt}
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
-        
+
         document.body.appendChild(a);
         a.click();
-        
+
         setTimeout(() => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
@@ -1506,7 +1529,7 @@ ${currentOptimizedPrompt}
             filterAndRenderPrompts();
         });
     }
-    
+
     if (playgroundBtn) {
         playgroundBtn.addEventListener('click', () => {
             setActiveMenuItem(playgroundBtn);
@@ -1557,4 +1580,228 @@ ${currentOptimizedPrompt}
     if (playgroundRestoreBtn) {
         playgroundRestoreBtn.addEventListener('click', restoreOriginalPrompt);
     }
+
+    // --- Usage Tracking & Dashboard ---
+
+    // Increment usage for a prompt
+    const incrementUsage = (promptId) => {
+        if (!promptId) return; // Should not happen but safety check
+
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const now = new Date().toISOString();
+
+        // 1. Update Global Stats
+        chrome.storage.local.get({ usageStats: {} }, (result) => {
+            let stats = result.usageStats || {};
+            if (!stats.dailyUsage) stats.dailyUsage = {};
+
+            // Increment daily count
+            stats.dailyUsage[today] = (stats.dailyUsage[today] || 0) + 1;
+
+            // 2. Update Prompt Stats (in memory and storage)
+            const promptIndex = allPrompts.findIndex(p => p.id === promptId);
+            if (promptIndex !== -1) {
+                const prompt = allPrompts[promptIndex];
+                prompt.usageCount = (prompt.usageCount || 0) + 1;
+                prompt.lastUsed = now;
+
+                // Save both changes
+                chrome.storage.local.set({
+                    prompts: allPrompts,
+                    usageStats: stats
+                }, () => {
+                    console.log('Usage tracked for prompt:', prompt.title);
+                });
+            }
+        });
+    };
+
+    // Render Dashboard
+    const renderDashboard = () => {
+        const dashboardContainer = document.getElementById('dashboard-container');
+        if (!dashboardContainer) return; // Guard if element doesn't exist
+
+        // Fetch global stats for graph
+        chrome.storage.local.get({ usageStats: {} }, (result) => {
+            const stats = result.usageStats || {};
+            const dailyUsage = stats.dailyUsage || {};
+
+            // --- 1. Hero Stats ---
+            const totalPrompts = allPrompts.length;
+            const totalUsage = allPrompts.reduce((sum, p) => sum + (p.usageCount || 0), 0);
+            const favoritesCount = allPrompts.filter(p => p.favorite).length;
+
+            // Calc Avg Length
+            const totalLength = allPrompts.reduce((sum, p) => sum + p.text.length, 0);
+            const avgLength = totalPrompts > 0 ? Math.round(totalLength / totalPrompts) : 0;
+
+            document.querySelector('#stat-total-prompts .stat-value').textContent = totalPrompts;
+            document.querySelector('#stat-total-usage .stat-value').textContent = totalUsage.toLocaleString();
+            document.querySelector('#stat-favorites .stat-value').textContent = favoritesCount;
+            document.querySelector('#stat-avg-length .stat-value').textContent = avgLength.toLocaleString();
+
+            // --- 2. Activity Graph (Last 14 Days) ---
+            const graphContainer = document.getElementById('activity-graph');
+            graphContainer.innerHTML = '';
+
+            const dates = [];
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                dates.push(d.toISOString().split('T')[0]);
+            }
+
+            // Find max for scaling
+            const maxUsage = Math.max(...dates.map(d => dailyUsage[d] || 0), 5); // Min scale of 5
+
+            dates.forEach(date => {
+                const count = dailyUsage[date] || 0;
+                const heightPercent = Math.max((count / maxUsage) * 100, 4); // Min 4% height
+
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'graph-bar-wrapper';
+
+                // Format date for label (e.g. "Feb 14")
+                const dateObj = new Date(date);
+                const dateLabel = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                barWrapper.innerHTML = `
+                    <div class="graph-tooltip">${count} uses on ${dateLabel}</div>
+                    <div class="graph-bar" style="height: ${heightPercent}%;"></div>
+                    <span class="graph-date">${dateLabel}</span>
+                `;
+
+                graphContainer.appendChild(barWrapper);
+            });
+
+            // --- 3. Insights ---
+
+            // Top Categories
+            const categories = {};
+            allPrompts.forEach(p => {
+                const cat = p.category || 'Uncategorized';
+                categories[cat] = (categories[cat] || 0) + 1;
+            });
+
+            const sortedCategories = Object.entries(categories)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5); // Top 5
+
+            const categoryContainer = document.getElementById('category-bars');
+            categoryContainer.innerHTML = '';
+            const maxCat = Math.max(...Object.values(categories), 1);
+
+            sortedCategories.forEach(([cat, count]) => {
+                const widthPercent = (count / maxCat) * 100;
+                const div = document.createElement('div');
+                div.className = 'category-bar-item';
+                div.innerHTML = `
+                    <span class="category-name">${escapeHtml(cat)}</span>
+                    <div class="category-track">
+                        <div class="category-fill" style="width: ${widthPercent}%"></div>
+                    </div>
+                    <span class="category-count">${count}</span>
+                `;
+                categoryContainer.appendChild(div);
+            });
+
+            // Top Prompts
+            const topPrompts = [...allPrompts]
+                .sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
+                .slice(0, 5)
+                .filter(p => (p.usageCount || 0) > 0);
+
+            const topList = document.getElementById('top-prompts-list');
+            topList.innerHTML = '';
+
+            if (topPrompts.length === 0) {
+                topList.innerHTML = '<li class="dashboard-list-item" style="color:var(--text-muted); justify-content:center;">No usage data yet</li>';
+            } else {
+                topPrompts.forEach(p => {
+                    const li = document.createElement('li');
+                    li.className = 'dashboard-list-item';
+                    li.innerHTML = `
+                        <div class="item-info">
+                            <div class="item-title">${escapeHtml(p.title)}</div>
+                            <div class="item-meta">${p.tags.slice(0, 2).map(t => '#' + escapeHtml(t)).join(' ')}</div>
+                        </div>
+                        <div class="item-stat">${p.usageCount}</div>
+                    `;
+                    // Click to view logic
+                    li.addEventListener('click', () => {
+                        // Switch to prompt view
+                        panelTitle.textContent = p.title;
+                        try {
+                            if (typeof markdownParser !== 'undefined') {
+                                panelText.innerHTML = markdownParser.parse(p.text);
+                            } else {
+                                panelText.textContent = p.text;
+                            }
+                        } catch (error) {
+                            panelText.textContent = p.text;
+                        }
+                        currentPanelPromptText = p.text;
+                        currentPanelPromptId = p.id;
+                        isPromptEnhanced = false;
+                        panelKeepBtn.classList.add('hidden');
+                        promptViewPanel.classList.add('active');
+                    });
+                    topList.appendChild(li);
+                });
+            }
+
+            // Recently Used
+            const lastUsed = [...allPrompts]
+                .sort((a, b) => (new Date(b.lastUsed || 0)) - (new Date(a.lastUsed || 0)))[0];
+
+            const lastUsedCard = document.getElementById('last-used-card');
+            if (lastUsed && lastUsed.lastUsed) {
+                const date = new Date(lastUsed.lastUsed);
+                const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                lastUsedCard.innerHTML = `
+                    <div class="recent-prompt-title">${escapeHtml(lastUsed.title)}</div>
+                    <div class="recent-prompt-time">Used on ${timeStr}</div>
+                `;
+            } else {
+                lastUsedCard.innerHTML = `
+                    <div class="recent-prompt-title">No recent activity</div>
+                    <div class="recent-prompt-time">-</div>
+                `;
+            }
+
+            // Growth (New this week)
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const newCount = allPrompts.filter(p => new Date(p.createdAt) > oneWeekAgo).length;
+            document.getElementById('growth-week').textContent = '+' + newCount;
+        });
+    };
+
+    // Wire up Dashboard Button
+    const dashboardBtn = document.getElementById('dashboard-btn');
+    const dashboardContainer = document.getElementById('dashboard-container');
+
+    if (dashboardBtn) {
+        dashboardBtn.addEventListener('click', () => {
+            setActiveMenuItem(dashboardBtn);
+
+            // Hide other views
+            promptListContainer.style.display = 'none';
+            playgroundContainer.style.display = 'none';
+
+            // Hide content header (search bar)
+            const contentHeader = document.querySelector('.content-header');
+            if (contentHeader) contentHeader.style.display = 'none';
+
+            // Show Dashboard
+            dashboardContainer.style.display = 'block';
+
+            // Render data
+            renderDashboard();
+        });
+    }
+
+    // Note: showPromptList() and showPlayground() already hide the dashboard
+    // and restore the content-header, so no supplementary listeners needed.
+
 });
