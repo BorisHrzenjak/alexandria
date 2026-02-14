@@ -323,6 +323,22 @@
         </div>
     </div>
 
+    <!-- Variable Input Modal -->
+    <div id="variable-input-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Fill Variables</h2>
+            <p class="modal-description">This prompt contains variables. Fill them in below or copy the raw prompt.</p>
+            <div id="variable-inputs-container">
+                <!-- Variable inputs will be generated here -->
+            </div>
+            <div class="modal-actions">
+                <button id="copy-with-values-btn" class="primary-btn">Copy with Values</button>
+                <button id="copy-raw-btn" class="secondary-btn">Copy Raw Prompt</button>
+            </div>
+        </div>
+    </div>
+
     <script src="popup.js"></script>
 </body>
 </html>

@@ -1027,19 +1027,128 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Copy prompt text
-    const copyPromptText = (text) => {
-        navigator.clipboard.writeText(text).then(() => {
-            // Show feedback
-            copyFeedback.classList.add('show');
-            setTimeout(() => {
-                copyFeedback.classList.remove('show');
-            }, 2000);
+    // Variable System State
+    let currentVariablePromptText = '';
+    let foundVariables = [];
+
+    // Extract variables from text: matches {variableName}
+    const extractVariables = (text) => {
+        const regex = /{([^{}]+)}/g;
+        const variables = new Set();
+        let match;
+        
+        while ((match = regex.exec(text)) !== null) {
+            variables.add(match[1]);
+        }
+        
+        return Array.from(variables);
+    };
+
+    // Render variable inputs in the modal
+    const renderVariableInputs = (variables) => {
+        const container = document.getElementById('variable-inputs-container');
+        container.innerHTML = '';
+        
+        variables.forEach(variable => {
+            const group = document.createElement('div');
+            group.className = 'variable-input-group';
+            
+            const label = document.createElement('label');
+            label.innerHTML = `Value for <span class="variable-name">{${escapeHtml(variable)}}</span>:`;
+            label.htmlFor = `var-${variable}`;
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.id = `var-${variable}`;
+            input.dataset.variable = variable;
+            input.placeholder = `Enter value for ${variable}...`;
+            
+            // Auto-focus the first input
+            if (variables.indexOf(variable) === 0) {
+                setTimeout(() => input.focus(), 100);
+            }
+            
+            // Allow Enter key to submit if it's the last input
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && variables.indexOf(variable) === variables.length - 1) {
+                    processVariableCopy();
+                }
+            });
+
+            group.appendChild(label);
+            group.appendChild(input);
+            container.appendChild(group);
+        });
+    };
+
+    // Process the variables and copy
+    const processVariableCopy = () => {
+        let finalText = currentVariablePromptText;
+        const inputs = document.querySelectorAll('#variable-inputs-container input');
+        
+        inputs.forEach(input => {
+            const variable = input.dataset.variable;
+            const value = input.value.trim(); // We use empty string if value is empty, effectively removing the placeholder or replacing with nothing
+            
+            // Replace all instances of {variable}
+            // Use a regex with global flag to replace all occurrences
+            // Escape special regex characters in the variable name just in case
+            const escapedVariable = variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`{${escapedVariable}}`, 'g');
+            finalText = finalText.replace(regex, value);
+        });
+        
+        // Copy the text
+        navigator.clipboard.writeText(finalText).then(() => {
+            closeModal(document.getElementById('variable-input-modal'));
+            showCopyFeedback();
         }).catch(err => {
             console.error('Failed to copy text: ', err);
             alert('Failed to copy to clipboard');
         });
     };
+
+    // Show copy feedback (reused)
+    const showCopyFeedback = () => {
+        copyFeedback.classList.add('show');
+        setTimeout(() => {
+            copyFeedback.classList.remove('show');
+        }, 2000);
+    };
+
+    // Copy prompt text (Modified to handle variables)
+    const copyPromptText = (text) => {
+        const variables = extractVariables(text);
+        
+        if (variables.length > 0) {
+            // Variables found - open modal
+            currentVariablePromptText = text;
+            foundVariables = variables;
+            renderVariableInputs(variables);
+            openModal(document.getElementById('variable-input-modal'));
+        } else {
+            // No variables - standard copy
+            navigator.clipboard.writeText(text).then(() => {
+                showCopyFeedback();
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy to clipboard');
+            });
+        }
+    };
+
+    // Variable Modal Event Listeners
+    document.getElementById('copy-with-values-btn')?.addEventListener('click', processVariableCopy);
+    
+    document.getElementById('copy-raw-btn')?.addEventListener('click', () => {
+        navigator.clipboard.writeText(currentVariablePromptText).then(() => {
+            closeModal(document.getElementById('variable-input-modal'));
+            showCopyFeedback();
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            alert('Failed to copy to clipboard');
+        });
+    });
 
     // Panel copy button
     panelCopyBtn.addEventListener('click', () => {

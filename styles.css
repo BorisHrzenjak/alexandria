@@ -1314,3 +1314,67 @@ input:checked + .slider:before {
         height: 10px;
     }
 }
+
+/* --- Variable Input Modal --- */
+.modal-description {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.variable-input-group {
+    margin-bottom: 16px;
+}
+
+.variable-input-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.variable-input-group label .variable-name {
+    color: var(--accent-color);
+    font-family: monospace;
+    background-color: var(--button-bg);
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    justify-content: flex-end;
+}
+
+.primary-btn, .secondary-btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 14px;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.primary-btn {
+    background-color: var(--button-primary-bg);
+    color: var(--button-primary-text);
+    flex: 2;
+}
+
+.primary-btn:hover {
+    background-color: var(--button-primary-hover-bg);
+}
+
+.secondary-btn {
+    background-color: var(--button-bg);
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.secondary-btn:hover {
+    background-color: var(--button-hover-bg);
+}
