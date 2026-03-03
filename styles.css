@@ -450,17 +450,24 @@ body.dark-mode .sidebar:hover {
 .prompt-action-btn {
     background: none;
     border: none;
-    color: var(--text-secondary);
     cursor: pointer;
-    padding: 4px;
-    font-size: 16px;
-    border-radius: 4px;
-    transition: background-color 0.2s, color 0.2s;
+    padding: 6px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s, opacity 0.15s;
+    opacity: 0.75;
 }
 
 .prompt-action-btn:hover {
     background-color: var(--button-bg);
-    color: var(--text-primary);
+    opacity: 1;
+}
+
+.prompt-action-btn svg {
+    display: block;
+    flex-shrink: 0;
 }
 
 .prompt-item-placeholder {
