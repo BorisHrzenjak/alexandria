@@ -1430,6 +1430,7 @@ input:checked+.slider:before {
     gap: 24px;
     max-width: 100%;
     overflow: hidden;
+    padding-bottom: 24px;
 }
 
 /* Hero Stats Row */
