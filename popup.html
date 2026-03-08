@@ -32,22 +32,21 @@
                 </div>
 
                 <div class="sidebar-section">
-                    <h3 class="section-title">Menu</h3>
+                    <h3 class="section-title">&gt; Menu</h3>
                     <div class="menu-items">
-                        <div class="menu-item" id="create-prompt-btn">
+                        <div class="menu-item" id="create-prompt-btn" title="Create new prompt">
                             <div class="menu-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                     stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
                             </div>
                             <span class="menu-text">New Prompt</span>
+                            <span class="kbd">+</span>
                         </div>
-                        <div class="menu-item" id="favorites-btn">
+                        <div class="menu-item" id="favorites-btn" title="View favorites">
                             <div class="menu-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -130,7 +129,7 @@
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </div>
-                        <input type="text" id="search-input" placeholder="Search prompts...">
+                        <input type="text" id="search-input" placeholder="[/] Search prompts...">
                     </div>
                     <div class="filter-controls">
                         <select id="category-filter">
@@ -279,72 +278,112 @@
 
                 <!-- Dashboard View (hidden by default) -->
                 <div class="dashboard-container" id="dashboard-container" style="display: none;">
-                    <h2 class="content-title">Library Analytics</h2>
+                    <h2 class="content-title">Dashboard</h2>
 
                     <div class="dashboard-grid">
-                        <!-- Hero Stats -->
+                        <!-- Hero Stats Row -->
                         <div class="dashboard-hero-row">
-                            <div class="stat-card" id="stat-total-prompts">
+                            <div class="stat-card">
                                 <div class="stat-label">Total Prompts</div>
-                                <div class="stat-value">0</div>
-                                <div class="stat-icon">📚</div>
+                                <div class="stat-value" id="stat-total-prompts">0</div>
                             </div>
-                            <div class="stat-card" id="stat-total-usage">
+                            <div class="stat-card">
                                 <div class="stat-label">Total Uses</div>
-                                <div class="stat-value">0</div>
-                                <div class="stat-icon">🖱️</div>
+                                <div class="stat-value" id="stat-total-usage">0</div>
                             </div>
-                            <div class="stat-card" id="stat-favorites">
+                            <div class="stat-card">
                                 <div class="stat-label">Favorites</div>
-                                <div class="stat-value">0</div>
-                                <div class="stat-icon">🌟</div>
+                                <div class="stat-value" id="stat-favorites">0</div>
                             </div>
-                            <div class="stat-card" id="stat-avg-length">
-                                <div class="stat-label">Avg Length</div>
-                                <div class="stat-value">0</div>
-                                <div class="stat-desc">chars</div>
+                            <div class="stat-card">
+                                <div class="stat-label">Categories</div>
+                                <div class="stat-value" id="stat-categories">0</div>
                             </div>
-                        </div>
-
-                        <!-- Top Categories (full-width) -->
-                        <div class="dashboard-section">
-                            <h3>Top Categories</h3>
-                            <div class="category-bars-container" id="category-bars">
-                                <!-- Bars generated by JS -->
+                            <div class="stat-card">
+                                <div class="stat-label">Tags</div>
+                                <div class="stat-value" id="stat-tags">0</div>
                             </div>
                         </div>
 
-                        <!-- Insights Row -->
-                        <div class="dashboard-row-split">
-                            <div class="dashboard-column">
-                                <h3>Most Used Prompts</h3>
-                                <ul class="dashboard-list" id="top-prompts-list">
-                                    <!-- Items generated by JS -->
+                        <!-- Main Content Row -->
+                        <div class="dashboard-main-row">
+                            <!-- Left Column -->
+                            <div class="dashboard-left">
+                                <!-- Top Categories -->
+                                <div class="dashboard-card">
+                                    <h3 class="card-title">Top Categories</h3>
+                                    <div class="category-bars-container" id="category-bars">
+                                        <div class="empty-state">No categories yet</div>
+                                    </div>
+                                </div>
+
+                                <!-- Top Tags -->
+                                <div class="dashboard-card">
+                                    <h3 class="card-title">Top Tags</h3>
+                                    <div class="tags-cloud" id="tags-cloud">
+                                        <div class="empty-state">No tags yet</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="dashboard-right">
+                            <!-- Recent Prompts -->
+                            <div class="dashboard-card">
+                                <h3 class="card-title">Recent Prompts</h3>
+                                <ul class="prompt-list-mini" id="recent-prompts-list">
+                                    <li class="empty-state">No prompts yet</li>
                                 </ul>
                             </div>
 
-                            <div class="dashboard-column">
-                                <h3>Activity (Last 14 Days)</h3>
-                                <div class="activity-graph-container" id="activity-graph">
-                                    <!-- Bars generated by JS -->
+                            <!-- Time Stats -->
+                            <div class="dashboard-card">
+                                <h3 class="card-title">This Month</h3>
+                                <div class="time-stats">
+                                    <div class="time-stat">
+                                        <div class="time-stat-value" id="stat-month-prompts">0</div>
+                                        <div class="time-stat-label">Prompts</div>
+                                    </div>
+                                    <div class="time-stat">
+                                        <div class="time-stat-value" id="stat-month-used">0</div>
+                                        <div class="time-stat-label">Used</div>
+                                    </div>
+                                    <div class="time-stat">
+                                        <div class="time-stat-value" id="stat-month-categories">0</div>
+                                        <div class="time-stat-label">Categories</div>
+                                    </div>
                                 </div>
+                            </div>
+
+                            <div class="dashboard-card">
+                                <h3 class="card-title">This Week</h3>
+                                <div class="time-stats">
+                                    <div class="time-stat">
+                                        <div class="time-stat-value" id="stat-week-prompts">0</div>
+                                        <div class="time-stat-label">Prompts</div>
+                                    </div>
+                                    <div class="time-stat">
+                                        <div class="time-stat-value" id="stat-week-used">0</div>
+                                        <div class="time-stat-label">Used</div>
+                                    </div>
+                                    <div class="time-stat">
+                                        <div class="time-stat-value" id="stat-week-categories">0</div>
+                                        <div class="time-stat-label">Categories</div>
+                                    </div>
+                                </div>
+                            </div>
                             </div>
                         </div>
 
-                        <div class="dashboard-row-split">
-                            <div class="dashboard-column">
-                                <h3>Recently Used</h3>
-                                <div class="recent-prompt-card" id="last-used-card">
-                                    <div class="recent-prompt-title">No recent activity</div>
-                                    <div class="recent-prompt-time">-</div>
-                                </div>
+                        <!-- Activity Row -->
+                        <div class="dashboard-card activity-card">
+                            <h3 class="card-title">Activity (Last 7 Days)</h3>
+                            <div class="activity-chart" id="activity-chart">
+                                <div class="empty-state">No activity yet</div>
                             </div>
-                            <div class="dashboard-column">
-                                <div class="growth-stat">
-                                    <h3>Growth</h3>
-                                    <div class="growth-value" id="growth-week">0</div>
-                                    <div class="growth-label">New prompts this week</div>
-                                </div>
+                            <div class="activity-legend">
+                                <span class="legend-item"><span class="legend-dot created"></span> Created</span>
+                                <span class="legend-item"><span class="legend-dot used"></span> Used</span>
                             </div>
                         </div>
                     </div>
@@ -469,7 +508,7 @@
                     </div>
                 </div>
             </div>
-            <button id="save-prompt-btn" title="Save the current prompt">Save Prompt</button>
+            <button id="save-prompt-btn" title="Save the current prompt">Save Prompt [Enter]</button>
         </div>
     </div>
 
@@ -478,13 +517,64 @@
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2>Settings</h2>
+            
+            <!-- Theme Selector -->
             <div class="setting-item">
-                <label for="dark-mode-toggle">Dark Mode:</label>
-                <label class="switch" title="Toggle Dark Mode">
-                    <input type="checkbox" id="dark-mode-toggle" checked>
-                    <span class="slider round"></span>
-                </label>
+                <label>Theme:</label>
+                <div class="theme-selector">
+                    <label class="theme-option active" data-theme="tokyo-night">
+                        <input type="radio" name="theme" value="tokyo-night" checked>
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #1a1b26 50%, #7aa2f7 50%);"></div>
+                        <span class="theme-name">Tokyo Night</span>
+                    </label>
+                    <label class="theme-option" data-theme="dracula">
+                        <input type="radio" name="theme" value="dracula">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #282a36 50%, #bd93f9 50%);"></div>
+                        <span class="theme-name">Dracula</span>
+                    </label>
+                    <label class="theme-option" data-theme="one-dark-pro">
+                        <input type="radio" name="theme" value="one-dark-pro">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #282c34 50%, #61afef 50%);"></div>
+                        <span class="theme-name">One Dark Pro</span>
+                    </label>
+                    <label class="theme-option" data-theme="github-dark">
+                        <input type="radio" name="theme" value="github-dark">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #0d1117 50%, #58a6ff 50%);"></div>
+                        <span class="theme-name">GitHub Dark</span>
+                    </label>
+                    <label class="theme-option" data-theme="monokai">
+                        <input type="radio" name="theme" value="monokai">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #272822 50%, #f92672 50%);"></div>
+                        <span class="theme-name">Monokai</span>
+                    </label>
+                    <label class="theme-option" data-theme="nord">
+                        <input type="radio" name="theme" value="nord">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #2e3440 50%, #88c0d0 50%);"></div>
+                        <span class="theme-name">Nord</span>
+                    </label>
+                    <label class="theme-option" data-theme="ayu-dark">
+                        <input type="radio" name="theme" value="ayu-dark">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #0a0e14 50%, #e6b450 50%);"></div>
+                        <span class="theme-name">Ayu Dark</span>
+                    </label>
+                    <label class="theme-option" data-theme="night-owl">
+                        <input type="radio" name="theme" value="night-owl">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #011627 50%, #82aaff 50%);"></div>
+                        <span class="theme-name">Night Owl</span>
+                    </label>
+                    <label class="theme-option" data-theme="catppuccin">
+                        <input type="radio" name="theme" value="catppuccin">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #1e1e2e 50%, #cba6f7 50%);"></div>
+                        <span class="theme-name">Catppuccin</span>
+                    </label>
+                    <label class="theme-option" data-theme="github-light">
+                        <input type="radio" name="theme" value="github-light">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #ffffff 50%, #0969da 50%);"></div>
+                        <span class="theme-name">GitHub Light</span>
+                    </label>
+                </div>
             </div>
+            
             <!-- Import/Export Functionality -->
             <div class="setting-item">
                 <label>Prompt Data:</label>

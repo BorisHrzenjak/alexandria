@@ -84,32 +84,59 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentOptimizedPrompt = ''; // Store the current optimized prompt
     let currentOriginalPrompt = ''; // Store the original prompt for comparison
 
-    // --- Dark Mode --- 
-    const applyDarkMode = (isEnabled) => {
-        if (isEnabled) {
-            body.classList.add('dark-mode');
-        } else {
-            body.classList.remove('dark-mode');
+    // --- Theme Management ---
+    const validThemes = ['tokyo-night', 'dracula', 'one-dark-pro', 'github-dark', 'monokai', 'nord', 'ayu-dark', 'night-owl', 'catppuccin', 'github-light'];
+    
+    const applyTheme = (themeName) => {
+        // Validate theme name
+        if (!themeName || !validThemes.includes(themeName)) {
+            themeName = 'tokyo-night';
         }
-        darkModeToggle.checked = isEnabled;
-    };
-
-    const loadDarkModePreference = () => {
-        chrome.storage.local.get('darkMode', (result) => {
-            // Default to dark mode if not set
-            const isDarkMode = result.darkMode === undefined ? true : !!result.darkMode;
-            applyDarkMode(isDarkMode);
+        
+        // Remove all theme attributes from body
+        document.body.removeAttribute('data-theme');
+        
+        // Apply selected theme to body
+        document.body.setAttribute('data-theme', themeName);
+        
+        // Update theme option UI
+        document.querySelectorAll('.theme-option').forEach(option => {
+            const radio = option.querySelector('input[type="radio"]');
+            if (radio && radio.value === themeName) {
+                option.classList.add('active');
+                radio.checked = true;
+            } else {
+                option.classList.remove('active');
+                if (radio) radio.checked = false;
+            }
         });
     };
 
-    const saveDarkModePreference = (isEnabled) => {
-        chrome.storage.local.set({ darkMode: isEnabled });
+    const loadThemePreference = () => {
+        chrome.storage.local.get('theme', (result) => {
+            const theme = result.theme || 'tokyo-night';
+            // Validate theme
+            if (!validThemes.includes(theme)) {
+                applyTheme('tokyo-night');
+            } else {
+                applyTheme(theme);
+            }
+        });
     };
 
-    darkModeToggle.addEventListener('change', () => {
-        const isEnabled = darkModeToggle.checked;
-        applyDarkMode(isEnabled);
-        saveDarkModePreference(isEnabled);
+    const saveThemePreference = (theme) => {
+        if (validThemes.includes(theme)) {
+            chrome.storage.local.set({ theme: theme });
+        }
+    };
+
+    // Theme selector - use change event on radio inputs
+    document.querySelectorAll('.theme-option input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const theme = e.target.value;
+            applyTheme(theme);
+            saveThemePreference(theme);
+        });
     });
 
     // --- Storage Functions --- 
@@ -412,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCategoryFilter(prompts);
             renderPromptList(prompts);
         });
-        loadDarkModePreference();
+        loadThemePreference();
         loadOpenRouterApiKey();
     };
 
@@ -881,6 +908,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = (modal) => {
         modal.classList.remove('active');
     };
+
+    // Close modal when clicking outside
+    document.addEventListener('click', (e) => {
+        document.querySelectorAll('.modal.active').forEach(modal => {
+            if (e.target === modal) {
+                closeModal(modal);
+            }
+        });
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal.active').forEach(modal => {
+                closeModal(modal);
+            });
+        }
+    });
 
     // Open settings modal
     settingsBtn.addEventListener('click', () => {
@@ -1646,7 +1691,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showPlayground = () => {
         promptListContainer.style.display = 'none';
-        playgroundContainer.style.display = 'block';
+        playgroundContainer.style.display = 'flex';
         const dc = document.getElementById('dashboard-container');
         if (dc) dc.style.display = 'none';
         const contentHeader = document.querySelector('.content-header');
@@ -1949,7 +1994,7 @@ ${currentOptimizedPrompt}
     // Render Dashboard
     const renderDashboard = () => {
         const dashboardContainer = document.getElementById('dashboard-container');
-        if (!dashboardContainer) return; // Guard if element doesn't exist
+        if (!dashboardContainer) return;
 
         // Fetch global stats for graph
         chrome.storage.local.get({ usageStats: {} }, (result) => {
@@ -1960,150 +2005,228 @@ ${currentOptimizedPrompt}
             const totalPrompts = allPrompts.length;
             const totalUsage = allPrompts.reduce((sum, p) => sum + (p.usageCount || 0), 0);
             const favoritesCount = allPrompts.filter(p => p.favorite).length;
+            
+            // Count unique categories and tags
+            const categories = new Set(allPrompts.map(p => p.category).filter(Boolean));
+            const tags = new Set(allPrompts.flatMap(p => p.tags || []));
 
-            // Calc Avg Length
-            const totalLength = allPrompts.reduce((sum, p) => sum + p.text.length, 0);
-            const avgLength = totalPrompts > 0 ? Math.round(totalLength / totalPrompts) : 0;
-
-            document.querySelector('#stat-total-prompts .stat-value').textContent = totalPrompts;
-            document.querySelector('#stat-total-usage .stat-value').textContent = totalUsage.toLocaleString();
-            document.querySelector('#stat-favorites .stat-value').textContent = favoritesCount;
-            document.querySelector('#stat-avg-length .stat-value').textContent = avgLength.toLocaleString();
-
-            // --- 2. Activity Graph (Last 14 Days) ---
-            const graphContainer = document.getElementById('activity-graph');
-            graphContainer.innerHTML = '';
-
-            const dates = [];
-            for (let i = 13; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                dates.push(d.toISOString().split('T')[0]);
-            }
-
-            // Find max for scaling
-            const maxUsage = Math.max(...dates.map(d => dailyUsage[d] || 0), 5); // Min scale of 5
-
-            dates.forEach(date => {
-                const count = dailyUsage[date] || 0;
-                const heightPercent = Math.max((count / maxUsage) * 100, 4); // Min 4% height
-
-                const barWrapper = document.createElement('div');
-                barWrapper.className = 'graph-bar-wrapper';
-
-                // Format date for label (e.g. "Feb 14")
-                const dateObj = new Date(date);
-                const dateLabel = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-                barWrapper.innerHTML = `
-                    <div class="graph-tooltip">${count} uses on ${dateLabel}</div>
-                    <div class="graph-bar" style="height: ${heightPercent}%;"></div>
-                    <span class="graph-date">${dateLabel}</span>
-                `;
-
-                graphContainer.appendChild(barWrapper);
+            // Calculate time-based stats
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            
+            // Start of today (midnight)
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            // Start of this week (Sunday)
+            const dayOfWeek = now.getDay();
+            const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek);
+            
+            // Start of this month
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            const monthKey = today.substring(0, 7);
+            const weekStartStr = startOfWeek.toISOString().split('T')[0];
+            
+            // Initialize counters
+            let monthPrompts = 0;
+            let monthUsed = 0;
+            let weekPrompts = 0;
+            let weekUsed = 0;
+            
+            // Calculate prompts created this month/week
+            allPrompts.forEach(p => {
+                const created = new Date(p.createdAt);
+                if (created >= startOfMonth) {
+                    monthPrompts++;
+                }
+                if (created >= startOfWeek) {
+                    weekPrompts++;
+                }
+            });
+            
+            // Calculate usage this month/week from dailyUsage
+            Object.entries(dailyUsage).forEach(([date, count]) => {
+                if (date.startsWith(monthKey)) {
+                    monthUsed += count;
+                }
+                if (date >= weekStartStr) {
+                    weekUsed += count;
+                }
             });
 
-            // --- 3. Insights ---
+            // Categories this month
+            const monthCategories = new Set(
+                allPrompts
+                    .filter(p => new Date(p.createdAt) >= startOfMonth)
+                    .map(p => p.category)
+                    .filter(Boolean)
+            ).size;
+            
+            // Categories this week
+            const weekCategories = new Set(
+                allPrompts
+                    .filter(p => new Date(p.createdAt) >= startOfWeek)
+                    .map(p => p.category)
+                    .filter(Boolean)
+            ).size;
+            
+            const statTotalPrompts = document.getElementById('stat-total-prompts');
+            const statTotalUsage = document.getElementById('stat-total-usage');
+            const statFavorites = document.getElementById('stat-favorites');
+            const statCategories = document.getElementById('stat-categories');
+            const statTags = document.getElementById('stat-tags');
+            const statMonthPrompts = document.getElementById('stat-month-prompts');
+            const statMonthUsed = document.getElementById('stat-month-used');
+            const statMonthCategories = document.getElementById('stat-month-categories');
+            const statWeekPrompts = document.getElementById('stat-week-prompts');
+            const statWeekUsed = document.getElementById('stat-week-used');
+            const statWeekCategories = document.getElementById('stat-week-categories');
 
-            // Top Categories
-            const categories = {};
+            if (statTotalPrompts) statTotalPrompts.textContent = totalPrompts;
+            if (statTotalUsage) statTotalUsage.textContent = totalUsage.toLocaleString();
+            if (statFavorites) statFavorites.textContent = favoritesCount;
+            if (statCategories) statCategories.textContent = categories.size;
+            if (statTags) statTags.textContent = tags.size;
+            if (statMonthPrompts) statMonthPrompts.textContent = monthPrompts;
+            if (statMonthUsed) statMonthUsed.textContent = monthUsed;
+            if (statMonthCategories) statMonthCategories.textContent = monthCategories;
+            if (statWeekPrompts) statWeekPrompts.textContent = weekPrompts;
+            if (statWeekUsed) statWeekUsed.textContent = weekUsed;
+            if (statWeekCategories) statWeekCategories.textContent = weekCategories;
+
+            // --- 2. Activity Chart (Last 7 Days) ---
+            const chartContainer = document.getElementById('activity-chart');
+            if (chartContainer) {
+                const dates = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    dates.push(d.toISOString().split('T')[0]);
+                }
+
+                // Find max for scaling
+                const maxUsage = Math.max(...dates.map(d => dailyUsage[d] || 0), 5);
+
+                chartContainer.innerHTML = dates.map(date => {
+                    const count = dailyUsage[date] || 0;
+                    const heightPercent = Math.max((count / maxUsage) * 100, 8);
+                    const dateObj = new Date(date);
+                    const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+                    
+                    return `
+                        <div class="activity-bar-wrapper">
+                            <div class="activity-bar-stack" title="${count} uses">
+                                <div class="activity-bar created" style="height: ${heightPercent}%;"></div>
+                            </div>
+                            <span class="activity-bar-date">${dayName}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // --- 3. Categories ---
+            const categoryCounts = {};
             allPrompts.forEach(p => {
                 const cat = p.category || 'Uncategorized';
-                categories[cat] = (categories[cat] || 0) + 1;
+                categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
             });
-
-            const sortedCategories = Object.entries(categories)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5); // Top 5
 
             const categoryContainer = document.getElementById('category-bars');
-            categoryContainer.innerHTML = '';
-            const maxCat = Math.max(...Object.values(categories), 1);
+            if (categoryContainer) {
+                const sortedCategories = Object.entries(categoryCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 6);
+                
+                const maxCat = Math.max(...Object.values(categoryCounts), 1);
+                
+                if (sortedCategories.length === 0) {
+                    categoryContainer.innerHTML = '<div class="empty-state">No categories yet</div>';
+                } else {
+                    categoryContainer.innerHTML = sortedCategories.map(([cat, count]) => {
+                        const widthPercent = (count / maxCat) * 100;
+                        return `
+                            <div class="category-bar">
+                                <span class="category-bar-label">${escapeHtml(cat)}</span>
+                                <div class="category-bar-track">
+                                    <div class="category-bar-fill" style="width: ${widthPercent}%;"></div>
+                                </div>
+                                <span class="category-bar-value">${count}</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
 
-            sortedCategories.forEach(([cat, count]) => {
-                const widthPercent = (count / maxCat) * 100;
-                const div = document.createElement('div');
-                div.className = 'category-bar-item';
-                div.innerHTML = `
-                    <span class="category-name">${escapeHtml(cat)}</span>
-                    <div class="category-track">
-                        <div class="category-fill" style="width: ${widthPercent}%"></div>
-                    </div>
-                    <span class="category-count">${count}</span>
-                `;
-                categoryContainer.appendChild(div);
+            // --- 4. Tags ---
+            const tagCounts = {};
+            allPrompts.forEach(p => {
+                (p.tags || []).forEach(tag => {
+                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                });
             });
 
-            // Top Prompts
-            const topPrompts = [...allPrompts]
-                .sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
-                .slice(0, 5)
-                .filter(p => (p.usageCount || 0) > 0);
+            const tagsContainer = document.getElementById('tags-cloud');
+            if (tagsContainer) {
+                const sortedTags = Object.entries(tagCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+                
+                if (sortedTags.length === 0) {
+                    tagsContainer.innerHTML = '<div class="empty-state">No tags yet</div>';
+                } else {
+                    tagsContainer.innerHTML = sortedTags.map(([tag, count]) => {
+                        return `<span class="tag-pill">${escapeHtml(tag)} <span class="tag-pill-count">${count}</span></span>`;
+                    }).join('');
+                }
+            }
 
-            const topList = document.getElementById('top-prompts-list');
-            topList.innerHTML = '';
+            // --- 5. Recent Prompts ---
+            const recentContainer = document.getElementById('recent-prompts-list');
+            if (recentContainer) {
+                const recentPrompts = [...allPrompts]
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                    .slice(0, 8);
 
-            if (topPrompts.length === 0) {
-                topList.innerHTML = '<li class="dashboard-list-item" style="color:var(--text-muted); justify-content:center;">No usage data yet</li>';
-            } else {
-                topPrompts.forEach(p => {
-                    const li = document.createElement('li');
-                    li.className = 'dashboard-list-item';
-                    li.innerHTML = `
-                        <div class="item-info">
-                            <div class="item-title">${escapeHtml(p.title)}</div>
-                            <div class="item-meta">${p.tags.slice(0, 2).map(t => '#' + escapeHtml(t)).join(' ')}</div>
-                        </div>
-                        <div class="item-stat">${p.usageCount}</div>
-                    `;
-                    // Click to view logic
-                    li.addEventListener('click', () => {
-                        // Switch to prompt view
-                        panelTitle.textContent = p.title;
-                        try {
-                            if (typeof markdownParser !== 'undefined') {
-                                panelText.innerHTML = markdownParser.parse(p.text);
-                            } else {
-                                panelText.textContent = p.text;
+                if (recentPrompts.length === 0) {
+                    recentContainer.innerHTML = '<li class="empty-state">No prompts yet</li>';
+                } else {
+                    recentContainer.innerHTML = recentPrompts.map(p => {
+                        const date = new Date(p.createdAt);
+                        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        return `
+                            <li data-prompt-id="${p.id}">
+                                <span class="prompt-list-mini-title">${escapeHtml(p.title)}</span>
+                                <span class="prompt-list-mini-date">${dateStr}</span>
+                            </li>
+                        `;
+                    }).join('');
+
+                    // Add click handlers
+                    recentContainer.querySelectorAll('li[data-prompt-id]').forEach(li => {
+                        li.addEventListener('click', () => {
+                            const promptId = li.dataset.promptId;
+                            const prompt = allPrompts.find(p => p.id === promptId);
+                            if (prompt) {
+                                panelTitle.textContent = prompt.title;
+                                try {
+                                    if (typeof markdownParser !== 'undefined') {
+                                        panelText.innerHTML = markdownParser.parse(prompt.text);
+                                    } else {
+                                        panelText.textContent = prompt.text;
+                                    }
+                                } catch (error) {
+                                    panelText.textContent = prompt.text;
+                                }
+                                currentPanelPromptText = prompt.text;
+                                currentPanelPromptId = prompt.id;
+                                isPromptEnhanced = false;
+                                panelKeepBtn.classList.add('hidden');
+                                promptViewPanel.classList.add('active');
                             }
-                        } catch (error) {
-                            panelText.textContent = p.text;
-                        }
-                        currentPanelPromptText = p.text;
-                        currentPanelPromptId = p.id;
-                        isPromptEnhanced = false;
-                        panelKeepBtn.classList.add('hidden');
-                        promptViewPanel.classList.add('active');
+                        });
                     });
-                    topList.appendChild(li);
-                });
+                }
             }
-
-            // Recently Used
-            const lastUsed = [...allPrompts]
-                .sort((a, b) => (new Date(b.lastUsed || 0)) - (new Date(a.lastUsed || 0)))[0];
-
-            const lastUsedCard = document.getElementById('last-used-card');
-            if (lastUsed && lastUsed.lastUsed) {
-                const date = new Date(lastUsed.lastUsed);
-                const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                lastUsedCard.innerHTML = `
-                    <div class="recent-prompt-title">${escapeHtml(lastUsed.title)}</div>
-                    <div class="recent-prompt-time">Used on ${timeStr}</div>
-                `;
-            } else {
-                lastUsedCard.innerHTML = `
-                    <div class="recent-prompt-title">No recent activity</div>
-                    <div class="recent-prompt-time">-</div>
-                `;
-            }
-
-            // Growth (New this week)
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            const newCount = allPrompts.filter(p => new Date(p.createdAt) > oneWeekAgo).length;
-            document.getElementById('growth-week').textContent = '+' + newCount;
         });
     };
 
@@ -2124,14 +2247,11 @@ ${currentOptimizedPrompt}
             if (contentHeader) contentHeader.style.display = 'none';
 
             // Show Dashboard
-            dashboardContainer.style.display = 'block';
+            dashboardContainer.style.display = 'flex';
 
             // Render data
             renderDashboard();
         });
     }
-
-    // Note: showPromptList() and showPlayground() already hide the dashboard
-    // and restore the content-header, so no supplementary listeners needed.
 
 });
