@@ -357,7 +357,15 @@
     <div id="prompt-view-panel" class="panel">
         <div class="panel-header">
             <h3 id="panel-prompt-title">Prompt Title</h3>
-            <button id="panel-close-btn" title="Close Panel">&times;</button>
+            <div class="panel-header-actions">
+                <button id="panel-history-btn" title="View Version History" class="panel-header-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </button>
+                <button id="panel-close-btn" title="Close Panel">&times;</button>
+            </div>
         </div>
         <div id="panel-prompt-text" class="panel-content">
             Prompt text will appear here...
@@ -369,6 +377,59 @@
             <div class="panel-actions-right">
                 <button id="panel-copy-btn" title="Copy Prompt Text">Copy Text</button>
                 <button id="panel-enhance-btn" title="Enhance Prompt with AI">Enhance with AI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Version History Panel (hidden by default) -->
+    <div id="history-panel" class="panel">
+        <div class="panel-header">
+            <h3>Version History</h3>
+            <button id="history-panel-close-btn" title="Close Panel">&times;</button>
+        </div>
+        <div id="history-panel-content" class="panel-content">
+            <!-- Version list will be rendered here -->
+        </div>
+        <div class="panel-footer">
+            <div class="panel-actions-left">
+                <button id="history-back-btn" title="Back to Prompt">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhancement Diff View (hidden by default) -->
+    <div id="enhance-diff-panel" class="panel">
+        <div class="panel-header">
+            <h3>Review Enhancement</h3>
+            <button id="enhance-diff-close-btn" title="Close">&times;</button>
+        </div>
+        <div class="enhance-diff-content">
+            <div class="enhance-diff-side">
+                <div class="enhance-diff-header">
+                    <span>Original</span>
+                </div>
+                <div id="enhance-diff-original" class="enhance-diff-text"></div>
+            </div>
+            <div class="enhance-diff-divider">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </div>
+            <div class="enhance-diff-side">
+                <div class="enhance-diff-header">
+                    <span>Enhanced</span>
+                </div>
+                <div id="enhance-diff-enhanced" class="enhance-diff-text"></div>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <div class="panel-actions-left">
+                <button id="enhance-restore-btn" class="secondary-btn">Restore Original</button>
+            </div>
+            <div class="panel-actions-right">
+                <button id="enhance-cancel-btn" class="secondary-btn">Cancel</button>
+                <button id="enhance-keep-btn" class="primary-btn">Keep Enhanced</button>
             </div>
         </div>
     </div>

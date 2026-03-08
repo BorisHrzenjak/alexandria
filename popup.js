@@ -50,6 +50,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const panelCloseBtn = document.getElementById('panel-close-btn');
     const panelCopyBtn = document.getElementById('panel-copy-btn');
     const panelKeepBtn = document.getElementById('panel-keep-btn');
+    const panelHistoryBtn = document.getElementById('panel-history-btn');
+
+    // History Panel Elements
+    const historyPanel = document.getElementById('history-panel');
+    const historyPanelContent = document.getElementById('history-panel-content');
+    const historyPanelCloseBtn = document.getElementById('history-panel-close-btn');
+    const historyBackBtn = document.getElementById('history-back-btn');
+
+    // Enhancement Diff Panel Elements
+    const enhanceDiffPanel = document.getElementById('enhance-diff-panel');
+    const enhanceDiffOriginal = document.getElementById('enhance-diff-original');
+    const enhanceDiffEnhanced = document.getElementById('enhance-diff-enhanced');
+    const enhanceDiffCloseBtn = document.getElementById('enhance-diff-close-btn');
+    const enhanceKeepBtn = document.getElementById('enhance-keep-btn');
+    const enhanceRestoreBtn = document.getElementById('enhance-restore-btn');
+    const enhanceCancelBtn = document.getElementById('enhance-cancel-btn');
+
+    // State variables for enhancement diff
+    let pendingEnhancedText = '';
+    let originalTextBeforeEnhance = '';
 
     let currentPanelPromptText = ''; // Store text for panel copy button
     let currentPanelPromptId = ''; // Store current prompt ID for save functionality
@@ -95,7 +115,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Storage Functions --- 
     const getPrompts = (callback) => {
         chrome.storage.local.get({ prompts: [] }, (result) => {
-            allPrompts = result.prompts.sort((a, b) => b.createdAt.localeCompare(a.createdAt)); // Sort newest first
+            const prompts = result.prompts || [];
+            
+            // Migration: ensure all prompts have versions array with initial version
+            prompts.forEach(prompt => {
+                if (!prompt.versions || !Array.isArray(prompt.versions)) {
+                    prompt.versions = [{
+                        text: prompt.text,
+                        timestamp: prompt.createdAt,
+                        reason: 'created'
+                    }];
+                }
+            });
+            
+            allPrompts = prompts.sort((a, b) => b.createdAt.localeCompare(a.createdAt)); // Sort newest first
             callback(allPrompts);
         });
     };
@@ -105,6 +138,111 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.storage.local.set({ prompts: allPrompts }, () => {
             console.log('Prompts saved.');
             if (callback) callback();
+        });
+    };
+
+    // Create a new version of a prompt
+    const createVersion = (promptId, newText, reason) => {
+        return new Promise((resolve) => {
+            getPrompts(prompts => {
+                const index = prompts.findIndex(p => p.id === promptId);
+                if (index === -1) {
+                    resolve(false);
+                    return;
+                }
+
+                const prompt = prompts[index];
+                
+                // Don't create version if text hasn't changed
+                if (prompt.text === newText) {
+                    resolve(true);
+                    return;
+                }
+
+                // Initialize versions array if it doesn't exist
+                if (!prompt.versions || !Array.isArray(prompt.versions)) {
+                    prompt.versions = [{
+                        text: prompt.text,
+                        timestamp: prompt.createdAt,
+                        reason: 'created'
+                    }];
+                }
+
+                // Add new version
+                prompt.versions.unshift({
+                    text: newText,
+                    timestamp: new Date().toISOString(),
+                    reason: reason
+                });
+
+                // Keep only last 10 versions
+                if (prompt.versions.length > 10) {
+                    prompt.versions = prompt.versions.slice(0, 10);
+                }
+
+                // Update prompt text
+                prompt.text = newText;
+                prompt.updatedAt = new Date().toISOString();
+
+                savePrompts(prompts, () => {
+                    console.log(`Version created for prompt ${promptId}: ${reason}`);
+                    resolve(true);
+                });
+            });
+        });
+    };
+
+    // Get versions for a specific prompt
+    const getPromptVersions = (promptId) => {
+        return new Promise((resolve) => {
+            getPrompts(prompts => {
+                const prompt = prompts.find(p => p.id === promptId);
+                resolve(prompt ? (prompt.versions || []) : []);
+            });
+        });
+    };
+
+    // Restore a specific version
+    const restoreVersion = (promptId, versionIndex) => {
+        return new Promise((resolve) => {
+            getPrompts(prompts => {
+                const index = prompts.findIndex(p => p.id === promptId);
+                if (index === -1) {
+                    resolve(false);
+                    return;
+                }
+
+                const prompt = prompts[index];
+                const versions = prompt.versions || [];
+                
+                if (versionIndex < 0 || versionIndex >= versions.length) {
+                    resolve(false);
+                    return;
+                }
+
+                const versionToRestore = versions[versionIndex];
+                
+                // Create a new version for the restore action
+                versions.unshift({
+                    text: versionToRestore.text,
+                    timestamp: new Date().toISOString(),
+                    reason: 'restored'
+                });
+
+                // Keep only last 10 versions
+                if (versions.length > 10) {
+                    prompt.versions = versions.slice(0, 10);
+                }
+
+                // Update prompt text to restored version
+                prompt.text = versionToRestore.text;
+                prompt.updatedAt = new Date().toISOString();
+
+                savePrompts(prompts, () => {
+                    console.log(`Version restored for prompt ${promptId}`);
+                    resolve(true);
+                });
+            });
         });
     };
 
@@ -931,6 +1069,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPanelPromptText = '';
                 isPromptEnhanced = false;
                 panelKeepBtn.classList.add('hidden');
+                
+                // Reset enhancement diff state
+                pendingEnhancedText = '';
+                originalTextBeforeEnhance = '';
             });
         });
     });
@@ -975,21 +1117,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const promptId = titleInput.dataset.promptId;
 
         if (promptId) {
-            // Edit existing prompt
-            getPrompts(prompts => {
-                const index = prompts.findIndex(p => p.id === promptId);
-                if (index !== -1) {
-                    prompts[index].title = title;
-                    prompts[index].text = text;
-                    prompts[index].category = category;
-                    prompts[index].tags = tags;
-                    prompts[index].updatedAt = new Date().toISOString();
+            // Edit existing prompt - create a version before saving
+            createVersion(promptId, text, 'edited').then(() => {
+                getPrompts(prompts => {
+                    const index = prompts.findIndex(p => p.id === promptId);
+                    if (index !== -1) {
+                        prompts[index].title = title;
+                        prompts[index].category = category;
+                        prompts[index].tags = tags;
+                        prompts[index].updatedAt = new Date().toISOString();
 
-                    savePrompts(prompts, () => {
-                        closeModal(addPromptModal);
-                        filterAndRenderPrompts();
-                    });
-                }
+                        savePrompts(prompts, () => {
+                            closeModal(addPromptModal);
+                            filterAndRenderPrompts();
+                        });
+                    }
+                });
             });
         } else {
             // Add new prompt
@@ -1001,7 +1144,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 tags,
                 favorite: false,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
+                versions: [{
+                    text: text,
+                    timestamp: new Date().toISOString(),
+                    reason: 'created'
+                }]
             };
 
             getPrompts(prompts => {
@@ -1180,57 +1328,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Panel keep button - save enhanced prompt
     if (panelKeepBtn) {
-        panelKeepBtn.addEventListener('click', () => {
+        panelKeepBtn.addEventListener('click', async () => {
             if (!isPromptEnhanced || !currentPanelPromptId) {
-                return; // Do nothing if prompt isn't enhanced or ID is missing
+                return;
             }
 
             setButtonLoading(panelKeepBtn, true);
 
-            // Update the prompt in storage
-            getPrompts(prompts => {
-                const index = prompts.findIndex(p => p.id === currentPanelPromptId);
-                if (index !== -1) {
-                    // Update the prompt text with enhanced version
-                    prompts[index].text = currentPanelPromptText;
-                    prompts[index].updatedAt = new Date().toISOString();
-
-                    // Create a copy of the updated prompt for later reference
-                    const updatedPrompt = { ...prompts[index] };
-
-                    // Save the updated prompts
-                    savePrompts(prompts, () => {
-                        console.log('Enhanced prompt saved with ID:', currentPanelPromptId);
-                        console.log('Updated prompt text:', currentPanelPromptText.substring(0, 50) + '...');
-
-                        // Show feedback
-                        alert('Enhanced prompt saved successfully!');
-
-                        // Hide keep button and reset enhancement state
-                        isPromptEnhanced = false;
-                        panelKeepBtn.classList.add('hidden');
-
-                        // Force a complete refresh of the UI
-                        // 1. Refresh the prompt list
-                        filterAndRenderPrompts();
-
-                        // 2. Update the allPrompts cache directly to ensure consistency
-                        const cacheIndex = allPrompts.findIndex(p => p.id === currentPanelPromptId);
-                        if (cacheIndex !== -1) {
-                            allPrompts[cacheIndex] = updatedPrompt;
+            const success = await createVersion(currentPanelPromptId, currentPanelPromptText, 'enhanced');
+            
+            if (success) {
+                alert('Enhanced prompt saved successfully!');
+                
+                isPromptEnhanced = false;
+                panelKeepBtn.classList.add('hidden');
+                
+                filterAndRenderPrompts();
+                
+                // Refresh the current panel view with updated text
+                getPrompts(prompts => {
+                    const prompt = prompts.find(p => p.id === currentPanelPromptId);
+                    if (prompt) {
+                        try {
+                            if (typeof markdownParser !== 'undefined') {
+                                panelText.innerHTML = markdownParser.parse(prompt.text);
+                            } else {
+                                panelText.textContent = prompt.text;
+                            }
+                        } catch (error) {
+                            console.error('Error parsing markdown:', error);
+                            panelText.textContent = prompt.text;
                         }
-
-                        setButtonLoading(panelKeepBtn, false);
-                    });
-                } else {
-                    alert('Error: Prompt not found.');
-                    setButtonLoading(panelKeepBtn, false);
-                }
-            });
+                    }
+                });
+            } else {
+                alert('Error saving enhanced prompt.');
+            }
+            
+            setButtonLoading(panelKeepBtn, false);
         });
     }
 
-    // Panel enhance button
+    // Panel enhance button - show diff view instead of immediately applying
     if (panelEnhanceBtn) {
         panelEnhanceBtn.addEventListener('click', () => {
             if (!currentPanelPromptText) {
@@ -1238,30 +1377,213 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Store original text before enhancing
+            originalTextBeforeEnhance = currentPanelPromptText;
+
             setButtonLoading(panelEnhanceBtn, true);
 
             enhancePromptWithAI(currentPanelPromptText, (enhancedText) => {
-                // Update the panel text with enhanced version
-                try {
-                    if (typeof markdownParser !== 'undefined') {
-                        panelText.innerHTML = markdownParser.parse(enhancedText);
-                    } else {
-                        panelText.textContent = enhancedText;
-                    }
-                } catch (error) {
-                    console.error('Error parsing markdown:', error);
-                    panelText.textContent = enhancedText;
-                }
+                // Store pending enhanced text
+                pendingEnhancedText = enhancedText;
 
-                // Update the stored text for copying
-                currentPanelPromptText = enhancedText;
-
-                // Show the keep button and mark as enhanced
-                isPromptEnhanced = true;
-                panelKeepBtn.classList.remove('hidden');
+                // Show the diff view
+                enhanceDiffOriginal.textContent = originalTextBeforeEnhance;
+                enhanceDiffEnhanced.textContent = enhancedText;
+                
+                enhanceDiffPanel.classList.add('active');
+                promptViewPanel.classList.remove('active');
 
                 setButtonLoading(panelEnhanceBtn, false);
             }, panelEnhanceBtn);
+        });
+    }
+
+    // History panel button - open history panel
+    if (panelHistoryBtn) {
+        panelHistoryBtn.addEventListener('click', () => {
+            if (!currentPanelPromptId) return;
+
+            getPromptVersions(currentPanelPromptId).then(versions => {
+                renderHistoryPanel(versions);
+                historyPanel.classList.add('active');
+                promptViewPanel.classList.remove('active');
+            });
+        });
+    }
+
+    // Render history panel with versions
+    const renderHistoryPanel = (versions) => {
+        if (!versions || versions.length === 0) {
+            historyPanelContent.innerHTML = '<div class="history-empty">No version history available.</div>';
+            return;
+        }
+
+        const formatDate = (isoString) => {
+            const date = new Date(isoString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        };
+
+        const getReasonBadge = (reason) => {
+            const badges = {
+                'created': '<span class="history-badge created">Created</span>',
+                'edited': '<span class="history-badge edited">Edited</span>',
+                'enhanced': '<span class="history-badge enhanced">Enhanced</span>',
+                'restored': '<span class="history-badge restored">Restored</span>'
+            };
+            return badges[reason] || `<span class="history-badge">${reason}</span>`;
+        };
+
+        historyPanelContent.innerHTML = versions.map((version, index) => {
+            const preview = version.text.length > 80 ? version.text.substring(0, 80) + '...' : version.text;
+            return `
+                <div class="history-item" data-index="${index}">
+                    <div class="history-item-header">
+                        <span class="history-item-date">${formatDate(version.timestamp)}</span>
+                        ${getReasonBadge(version.reason)}
+                    </div>
+                    <div class="history-item-preview">${escapeHtml(preview)}</div>
+                    <div class="history-item-actions">
+                        <button class="history-view-btn" data-index="${index}">View</button>
+                        <button class="history-restore-btn" data-index="${index}">Restore</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Add event listeners to history item buttons
+        historyPanelContent.querySelectorAll('.history-view-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                const version = versions[index];
+                alert('Version ' + (index + 1) + ':\n\n' + version.text);
+            });
+        });
+
+        historyPanelContent.querySelectorAll('.history-restore-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const index = parseInt(e.target.dataset.index);
+                if (confirm('Restore this version as the current prompt?')) {
+                    const success = await restoreVersion(currentPanelPromptId, index);
+                    if (success) {
+                        alert('Version restored successfully!');
+                        // Refresh the prompt view
+                        getPrompts(prompts => {
+                            const prompt = prompts.find(p => p.id === currentPanelPromptId);
+                            if (prompt) {
+                                currentPanelPromptText = prompt.text;
+                                try {
+                                    if (typeof markdownParser !== 'undefined') {
+                                        panelText.innerHTML = markdownParser.parse(prompt.text);
+                                    } else {
+                                        panelText.textContent = prompt.text;
+                                    }
+                                } catch (error) {
+                                    panelText.textContent = prompt.text;
+                                }
+                            }
+                        });
+                        // Refresh history
+                        getPromptVersions(currentPanelPromptId).then(v => renderHistoryPanel(v));
+                        filterAndRenderPrompts();
+                    }
+                }
+            });
+        });
+    };
+
+    // History panel close button
+    if (historyPanelCloseBtn) {
+        historyPanelCloseBtn.addEventListener('click', () => {
+            historyPanel.classList.remove('active');
+            promptViewPanel.classList.add('active');
+        });
+    }
+
+    // History panel back button
+    if (historyBackBtn) {
+        historyBackBtn.addEventListener('click', () => {
+            historyPanel.classList.remove('active');
+            promptViewPanel.classList.add('active');
+        });
+    }
+
+    // Enhancement diff panel handlers
+    if (enhanceKeepBtn) {
+        enhanceKeepBtn.addEventListener('click', async () => {
+            // Apply the enhanced version
+            currentPanelPromptText = pendingEnhancedText;
+            
+            // Update the panel view
+            try {
+                if (typeof markdownParser !== 'undefined') {
+                    panelText.innerHTML = markdownParser.parse(pendingEnhancedText);
+                } else {
+                    panelText.textContent = pendingEnhancedText;
+                }
+            } catch (error) {
+                panelText.textContent = pendingEnhancedText;
+            }
+
+            // Mark as enhanced and show keep button
+            isPromptEnhanced = true;
+            panelKeepBtn.classList.remove('hidden');
+
+            // Close diff panel and show prompt panel
+            enhanceDiffPanel.classList.remove('active');
+            promptViewPanel.classList.add('active');
+
+            // Clear pending data
+            pendingEnhancedText = '';
+            originalTextBeforeEnhance = '';
+        });
+    }
+
+    if (enhanceRestoreBtn) {
+        enhanceRestoreBtn.addEventListener('click', () => {
+            // Restore original text
+            currentPanelPromptText = originalTextBeforeEnhance;
+            
+            // Update the panel view
+            try {
+                if (typeof markdownParser !== 'undefined') {
+                    panelText.innerHTML = markdownParser.parse(originalTextBeforeEnhance);
+                } else {
+                    panelText.textContent = originalTextBeforeEnhance;
+                }
+            } catch (error) {
+                panelText.textContent = originalTextBeforeEnhance;
+            }
+
+            // Close diff panel and show prompt panel
+            enhanceDiffPanel.classList.remove('active');
+            promptViewPanel.classList.add('active');
+
+            // Clear pending data
+            pendingEnhancedText = '';
+            originalTextBeforeEnhance = '';
+        });
+    }
+
+    if (enhanceCancelBtn) {
+        enhanceCancelBtn.addEventListener('click', () => {
+            // Close diff panel and show prompt panel without changes
+            enhanceDiffPanel.classList.remove('active');
+            promptViewPanel.classList.add('active');
+
+            // Clear pending data
+            pendingEnhancedText = '';
+            originalTextBeforeEnhance = '';
+        });
+    }
+
+    if (enhanceDiffCloseBtn) {
+        enhanceDiffCloseBtn.addEventListener('click', () => {
+            enhanceDiffPanel.classList.remove('active');
+            promptViewPanel.classList.add('active');
+
+            // Clear pending data
+            pendingEnhancedText = '';
+            originalTextBeforeEnhance = '';
         });
     }
 
