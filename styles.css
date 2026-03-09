@@ -603,7 +603,7 @@ body {
 
 .prompt-item-preview {
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -625,7 +625,7 @@ body {
 
 .prompt-item-tags {
     font-size: 10px;
-    color: var(--text-muted);
+    color: var(--text-secondary);
 }
 
 .prompt-item-actions {
@@ -1549,6 +1549,7 @@ body {
 .dashboard-main-row {
     display: flex;
     gap: 12px;
+    align-items: stretch;
 }
 
 .dashboard-left {
@@ -1556,6 +1557,15 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    min-width: 0;
+}
+
+.dashboard-center {
+    flex: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
 }
 
 .dashboard-right {
@@ -1563,6 +1573,31 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    min-width: 0;
+}
+
+/* Card that stretches to fill remaining column height */
+.dashboard-card-fill {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-card-fill .prompt-list-mini {
+    flex: 1;
+    max-height: none;
+}
+
+/* Card that grows to fill leftover space in its column */
+.dashboard-card-grow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-card-grow .tags-cloud {
+    flex: 1;
+    align-content: flex-start;
 }
 
 /* Dashboard Cards */
@@ -1571,6 +1606,8 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 14px;
+    display: flex;
+    flex-direction: column;
 }
 
 .card-title {

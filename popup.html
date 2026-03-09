@@ -44,7 +44,6 @@
                                 </svg>
                             </div>
                             <span class="menu-text">New Prompt</span>
-                            <span class="kbd">+</span>
                         </div>
                         <div class="menu-item" id="favorites-btn" title="View favorites">
                             <div class="menu-icon">
@@ -307,7 +306,7 @@
 
                         <!-- Main Content Row -->
                         <div class="dashboard-main-row">
-                            <!-- Left Column -->
+                            <!-- Left Column: Categories + Tags -->
                             <div class="dashboard-left">
                                 <!-- Top Categories -->
                                 <div class="dashboard-card">
@@ -318,7 +317,7 @@
                                 </div>
 
                                 <!-- Top Tags -->
-                                <div class="dashboard-card">
+                                <div class="dashboard-card dashboard-card-grow">
                                     <h3 class="card-title">Top Tags</h3>
                                     <div class="tags-cloud" id="tags-cloud">
                                         <div class="empty-state">No tags yet</div>
@@ -326,52 +325,55 @@
                                 </div>
                             </div>
 
-                            <!-- Right Column -->
+                            <!-- Center Column: Recent Prompts -->
+                            <div class="dashboard-center">
+                                <div class="dashboard-card dashboard-card-fill">
+                                    <h3 class="card-title">Recent Prompts</h3>
+                                    <ul class="prompt-list-mini" id="recent-prompts-list">
+                                        <li class="empty-state">No prompts yet</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Time Stats -->
                             <div class="dashboard-right">
-                            <!-- Recent Prompts -->
-                            <div class="dashboard-card">
-                                <h3 class="card-title">Recent Prompts</h3>
-                                <ul class="prompt-list-mini" id="recent-prompts-list">
-                                    <li class="empty-state">No prompts yet</li>
-                                </ul>
-                            </div>
-
-                            <!-- Time Stats -->
-                            <div class="dashboard-card">
-                                <h3 class="card-title">This Month</h3>
-                                <div class="time-stats">
-                                    <div class="time-stat">
-                                        <div class="time-stat-value" id="stat-month-prompts">0</div>
-                                        <div class="time-stat-label">Prompts</div>
-                                    </div>
-                                    <div class="time-stat">
-                                        <div class="time-stat-value" id="stat-month-used">0</div>
-                                        <div class="time-stat-label">Used</div>
-                                    </div>
-                                    <div class="time-stat">
-                                        <div class="time-stat-value" id="stat-month-categories">0</div>
-                                        <div class="time-stat-label">Categories</div>
+                                <!-- This Month -->
+                                <div class="dashboard-card">
+                                    <h3 class="card-title">This Month</h3>
+                                    <div class="time-stats">
+                                        <div class="time-stat">
+                                            <div class="time-stat-value" id="stat-month-prompts">0</div>
+                                            <div class="time-stat-label">Prompts</div>
+                                        </div>
+                                        <div class="time-stat">
+                                            <div class="time-stat-value" id="stat-month-used">0</div>
+                                            <div class="time-stat-label">Used</div>
+                                        </div>
+                                        <div class="time-stat">
+                                            <div class="time-stat-value" id="stat-month-categories">0</div>
+                                            <div class="time-stat-label">Categories</div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="dashboard-card">
-                                <h3 class="card-title">This Week</h3>
-                                <div class="time-stats">
-                                    <div class="time-stat">
-                                        <div class="time-stat-value" id="stat-week-prompts">0</div>
-                                        <div class="time-stat-label">Prompts</div>
-                                    </div>
-                                    <div class="time-stat">
-                                        <div class="time-stat-value" id="stat-week-used">0</div>
-                                        <div class="time-stat-label">Used</div>
-                                    </div>
-                                    <div class="time-stat">
-                                        <div class="time-stat-value" id="stat-week-categories">0</div>
-                                        <div class="time-stat-label">Categories</div>
+                                <!-- This Week -->
+                                <div class="dashboard-card">
+                                    <h3 class="card-title">This Week</h3>
+                                    <div class="time-stats">
+                                        <div class="time-stat">
+                                            <div class="time-stat-value" id="stat-week-prompts">0</div>
+                                            <div class="time-stat-label">Prompts</div>
+                                        </div>
+                                        <div class="time-stat">
+                                            <div class="time-stat-value" id="stat-week-used">0</div>
+                                            <div class="time-stat-label">Used</div>
+                                        </div>
+                                        <div class="time-stat">
+                                            <div class="time-stat-value" id="stat-week-categories">0</div>
+                                            <div class="time-stat-label">Categories</div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                             </div>
                         </div>
 
