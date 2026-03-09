@@ -3,9 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set version badge from manifest
     const versionBadge = document.getElementById('version-badge');
-    if (versionBadge && chrome.runtime && chrome.runtime.getManifest) {
+    const settingsVersion = document.getElementById('settings-version');
+    if (chrome.runtime && chrome.runtime.getManifest) {
         const manifest = chrome.runtime.getManifest();
-        versionBadge.textContent = 'v' + manifest.version;
+        if (versionBadge) versionBadge.textContent = 'v' + manifest.version;
+        if (settingsVersion) settingsVersion.textContent = 'v' + manifest.version;
     }
 
     // DOM Elements

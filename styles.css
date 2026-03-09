@@ -1184,6 +1184,12 @@ body {
     color: var(--text-secondary);
 }
 
+.version-display {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
 .setting-description {
     font-size: 11px;
     color: var(--text-muted);
