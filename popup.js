@@ -1351,6 +1351,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return Array.from(variables);
     };
 
+    // Extract surrounding context for a variable in the prompt text
+    const getVariableContext = (text, variable) => {
+        const pattern = `{${variable}}`;
+        const index = text.indexOf(pattern);
+        if (index === -1) return '';
+
+        const contextRadius = 40;
+        const start = Math.max(0, index - contextRadius);
+        const end = Math.min(text.length, index + pattern.length + contextRadius);
+
+        let snippet = '';
+        if (start > 0) snippet += '...';
+        snippet += text.substring(start, end).replace(/\n/g, ' ');
+        if (end < text.length) snippet += '...';
+
+        return snippet;
+    };
+
     // Render variable inputs in the modal
     const renderVariableInputs = (variables) => {
         const container = document.getElementById('variable-inputs-container');
@@ -1363,6 +1381,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const label = document.createElement('label');
             label.innerHTML = `Value for <span class="variable-name">{${escapeHtml(variable)}}</span>:`;
             label.htmlFor = `var-${variable}`;
+
+            // Show surrounding context snippet with the variable highlighted
+            const context = getVariableContext(currentVariablePromptText, variable);
+            if (context) {
+                const hint = document.createElement('div');
+                hint.className = 'variable-context-hint';
+                const escaped = escapeHtml(context);
+                const highlighted = escaped.replace(
+                    new RegExp(escapeHtml(`{${variable}}`), 'g'),
+                    `<span class="variable-context-highlight">{${escapeHtml(variable)}}</span>`
+                );
+                hint.innerHTML = highlighted;
+                group.appendChild(label);
+                group.appendChild(hint);
+            } else {
+                group.appendChild(label);
+            }
 
             const input = document.createElement('input');
             input.type = 'text';
@@ -1382,7 +1417,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            group.appendChild(label);
             group.appendChild(input);
             container.appendChild(group);
         });

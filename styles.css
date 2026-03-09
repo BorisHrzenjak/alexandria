@@ -1019,6 +1019,24 @@ body {
     margin-bottom: 20px;
 }
 
+.variable-context-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: monospace;
+    background: var(--bg-tertiary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 4px 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.variable-context-highlight {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
 .modal .close-btn {
     position: absolute;
     top: 12px;
@@ -1191,9 +1209,9 @@ body {
 }
 
 .version-display {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--accent-color);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-muted);
 }
 
 .setting-description {
