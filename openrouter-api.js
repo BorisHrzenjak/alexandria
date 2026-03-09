@@ -1,5 +1,38 @@
 // OpenRouter API Integration for Alexandria
-// Uses the google/gemini-2.5-flash model
+// Uses the google/gemini-2.5-flash model (default)
+
+// Store selected model in local storage
+let currentModel = 'google/gemini-2.5-flash';
+
+// Get the current model
+const getModel = () => {
+    return currentModel;
+};
+
+// Set the model to use
+const setModel = (model) => {
+    currentModel = model;
+    return new Promise((resolve) => {
+        chrome.storage.local.set({ selectedModel: model }, () => {
+            resolve();
+        });
+    });
+};
+
+// Load model from storage on initialization
+const loadModel = () => {
+    return new Promise((resolve) => {
+        chrome.storage.local.get('selectedModel', (result) => {
+            if (result.selectedModel) {
+                currentModel = result.selectedModel;
+            }
+            resolve(currentModel);
+        });
+    });
+};
+
+// Initialize model on load
+loadModel();
 
 // Store API key in local storage to avoid hardcoding
 const getApiKey = () => {
@@ -38,7 +71,7 @@ const enhancePrompt = async (promptText) => {
         
         console.log('Making API request to OpenRouter...');
         const requestBody = {
-            model: 'google/gemini-2.5-flash',
+            model: currentModel,
             messages: [
                 {
                     role: 'system',
@@ -190,10 +223,27 @@ const getModelSpecificSystemPrompt = (modelType, purpose) => {
     return generalPrompts[modelType] || 'You are an expert prompt engineer. Enhance the user\'s prompt to make it more effective, clear, and likely to produce better results from AI models. Maintain the original intent but make it more specific, structured, and effective.';
 };
 
-// Optimize prompt for specific model and use case
-const optimizePromptForModel = async (promptText, modelType, purpose) => {
+// Get system prompt based on use case only (no model-specific variations)
+const getPurposeSystemPrompt = (purpose) => {
+    const purposePrompts = {
+        'text-generation': 'You are an expert prompt engineer specializing in text generation. Enhance the user\'s prompt to be clear, specific, well-structured, and highly effective. Focus on providing clear instructions, context, expected output format, and any relevant constraints. Maintain the original intent while maximizing quality and relevance.',
+        'creative-writing': 'You are an expert prompt engineer for creative writing. Enhance the user\'s prompt to inspire creative, engaging, and well-crafted content. Include specific style guidelines, tone requirements, character details, setting descriptions, narrative structure, and any creative constraints that will guide quality output.',
+        'code-generation': 'You are an expert prompt engineer for code generation. Enhance the user\'s prompt to request clean, well-documented, efficient code. Include specific programming language, functionality requirements, error handling, comments, code structure, and any performance considerations.',
+        'image-generation': 'You are an expert prompt engineer for image generation. Enhance the user\'s prompt with specific visual details, art styles, lighting conditions, composition elements, camera angles, artistic techniques, color palettes, and technical parameters that create compelling images.',
+        'data-analysis': 'You are an expert prompt engineer for data analysis. Enhance the user\'s prompt to request thorough, structured, actionable analysis. Include specific analytical methods, data interpretation requirements, visualization suggestions, statistical considerations, and clear reporting format.',
+        'problem-solving': 'You are an expert prompt engineer for problem-solving. Enhance the user\'s prompt to encourage systematic problem-solving approaches. Include clear problem definition, step-by-step analysis, solution evaluation criteria, implementation considerations, and risk assessment.',
+        'technical-writing': 'You are an expert prompt engineer for technical writing. Enhance the user\'s prompt to request clear, well-structured technical documentation. Include audience considerations, formatting requirements, detail level, examples, terminology definitions, and clarity guidelines.',
+        'marketing-copy': 'You are an expert prompt engineer for marketing copy. Enhance the user\'s prompt to create compelling, persuasive content. Include target audience details, tone requirements, key messages, value propositions, call-to-action elements, and brand voice guidelines.',
+        'educational': 'You are an expert prompt engineer for educational content. Enhance the user\'s prompt to create clear, engaging educational material. Include learning objectives, appropriate difficulty level, examples, interactive elements, and assessment criteria.'
+    };
+    
+    return purposePrompts[purpose] || 'You are an expert prompt engineer. Enhance the user\'s prompt to make it more effective, clear, and likely to produce better results from AI models. Maintain the original intent but make it more specific, structured, and effective.';
+};
+
+// Optimize prompt for specific use case with custom instructions
+const optimizePromptForModel = async (promptText, purpose, customInstructions = '') => {
     try {
-        console.log(`Optimizing prompt for ${modelType} (${purpose})...`);
+        console.log(`Optimizing prompt for purpose: ${purpose}, custom instructions: ${customInstructions}`);
         const apiKey = await getApiKey();
         
         if (!apiKey) {
@@ -201,11 +251,16 @@ const optimizePromptForModel = async (promptText, modelType, purpose) => {
             throw new Error('API key not found. Please add your OpenRouter API key in settings.');
         }
         
-        const systemPrompt = getModelSpecificSystemPrompt(modelType, purpose);
+        let systemPrompt = getPurposeSystemPrompt(purpose);
+        
+        if (customInstructions) {
+            systemPrompt += ` Additionally, follow these specific instructions: ${customInstructions}`;
+        }
+        
         console.log('Using system prompt:', systemPrompt);
         
         const requestBody = {
-            model: 'google/gemini-2.5-flash',
+            model: currentModel,
             messages: [
                 {
                     role: 'system',
@@ -213,7 +268,7 @@ const optimizePromptForModel = async (promptText, modelType, purpose) => {
                 },
                 {
                     role: 'user',
-                    content: `Optimize this prompt for ${modelType} (use case: ${purpose}): ${promptText}`
+                    content: `Optimize this prompt for use case: ${purpose}${customInstructions ? ` with these instructions: ${customInstructions}` : ''}. ${promptText}`
                 }
             ],
             temperature: 0.7,
@@ -277,7 +332,10 @@ window.openRouterApi = {
     enhancePrompt,
     optimizePromptForModel,
     getModelSpecificSystemPrompt,
+    getPurposeSystemPrompt,
     getApiKey,
     saveApiKey,
-    hasApiKey
+    hasApiKey,
+    getModel,
+    setModel
 };

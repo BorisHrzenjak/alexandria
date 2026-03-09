@@ -29,7 +29,7 @@
                             style="display: block;" />
                     </div>
                     <span class="sidebar-title">Alexandria</span>
-                    <span class="version-tag">v1.0.1</span>
+                    <span class="version-tag" id="version-badge"></span>
                 </div>
 
                 <div class="sidebar-section">
@@ -153,7 +153,7 @@
 
                     <div class="playground-form">
                         <div class="playground-row">
-                            <div class="playground-field">
+                            <div class="playground-field playground-field-grow">
                                 <label for="playground-purpose">Use Case:</label>
                                 <select id="playground-purpose" class="playground-select">
                                     <option value="">Select use case...</option>
@@ -168,31 +168,20 @@
                                     <option value="educational">Educational Content</option>
                                 </select>
                             </div>
-
-                            <div class="playground-field">
-                                <label for="playground-model">Target Model:</label>
-                                <select id="playground-model" class="playground-select">
-                                    <option value="">Select model...</option>
-                                    <optgroup label="Text Generation">
-                                        <option value="chatgpt">ChatGPT</option>
-                                        <option value="claude">Claude</option>
-                                        <option value="gemini">Gemini</option>
-                                        <option value="deepseek">DeepSeek</option>
-                                    </optgroup>
-                                    <optgroup label="Image Generation">
-                                        <option value="flux">Flux</option>
-                                        <option value="sdxl">SDXL</option>
-                                        <option value="sd15">Stable Diffusion 1.5</option>
-                                        <option value="ideogram">Ideogram</option>
-                                        <option value="dalle">DALL-E</option>
-                                    </optgroup>
-                                    <optgroup label="Code Generation">
-                                        <option value="copilot">GitHub Copilot</option>
-                                        <option value="codeqwen">CodeQwen</option>
-                                        <option value="starcoder">StarCoder</option>
-                                    </optgroup>
-                                </select>
+                            <div class="playground-field-btn">
+                                <button id="playground-manage-usecases-btn" class="playground-btn playground-btn-icon" title="Manage Custom Use Cases">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                    </svg>
+                                </button>
                             </div>
+                        </div>
+
+                        <div class="playground-field">
+                            <label for="playground-instructions">Custom Instructions (optional):</label>
+                            <textarea id="playground-instructions" class="playground-textarea playground-textarea-small"
+                                placeholder="Add specific instructions for optimization (e.g., 'Make prompts more concise', 'Add JSON output format', 'Include step-by-step reasoning')" rows="2"></textarea>
                         </div>
 
                         <div class="playground-field">
@@ -604,6 +593,14 @@
                             target="_blank">openrouter.ai/keys</a></p>
                 </div>
             </div>
+            <!-- OpenRouter Model Picker -->
+            <div class="setting-item">
+                <label for="model-picker">AI Model:</label>
+                <select id="model-picker">
+                    <option value="">Loading models...</option>
+                </select>
+                <p class="setting-description">Select the AI model for prompt enhancement and optimization.</p>
+            </div>
         </div>
     </div>
 
@@ -619,6 +616,27 @@
             <div class="modal-actions">
                 <button id="copy-with-values-btn" class="primary-btn">Copy with Values</button>
                 <button id="copy-raw-btn" class="secondary-btn">Copy Raw Prompt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Use Cases Modal -->
+    <div id="custom-usecases-modal" class="modal">
+        <div class="modal-content modal-content-wide">
+            <span class="close-btn">&times;</span>
+            <h2>Custom Use Cases</h2>
+            <p class="modal-description">Add your own use cases with custom instructions. These will appear in the Use Case dropdown.</p>
+            
+            <div class="custom-usecases-form">
+                <div class="custom-usecase-input-row">
+                    <input type="text" id="custom-usecase-name" class="custom-usecase-input" placeholder="Use case name (e.g., 'My Custom Use Case')">
+                    <input type="text" id="custom-usecase-instructions" class="custom-usecase-input" placeholder="Instructions (e.g., 'Make prompts concise and add JSON format')">
+                    <button id="add-custom-usecase-btn" class="primary-btn">Add</button>
+                </div>
+            </div>
+            
+            <div class="custom-usecases-list" id="custom-usecases-list">
+                <!-- Custom use cases will be listed here -->
             </div>
         </div>
     </div>

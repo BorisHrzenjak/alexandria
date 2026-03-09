@@ -1003,6 +1003,16 @@ body {
     position: relative;
 }
 
+.modal-content-wide {
+    max-width: 700px;
+}
+
+.modal-description {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
 .modal .close-btn {
     position: absolute;
     top: 12px;
@@ -1339,6 +1349,7 @@ body {
 .playground-row {
     display: flex;
     gap: 12px;
+    align-items: flex-end;
 }
 
 .playground-field {
@@ -1346,6 +1357,38 @@ body {
     display: flex;
     flex-direction: column;
     gap: 6px;
+}
+
+.playground-field-grow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.playground-field-btn {
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 2px;
+}
+
+.playground-btn-icon {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-primary);
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-speed);
+}
+
+.playground-btn-icon:hover {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
 }
 
 .playground-field label {
@@ -1956,4 +1999,102 @@ body {
     color: var(--text-muted);
     font-size: 11px;
     padding: 20px;
+}
+
+/* Custom Use Cases Modal */
+.custom-usecases-form {
+    margin-bottom: 20px;
+}
+
+.custom-usecase-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.custom-usecase-input {
+    flex: 1;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color var(--transition-speed);
+}
+
+.custom-usecase-input:focus {
+    border-color: var(--accent-color);
+}
+
+.custom-usecases-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.custom-usecase-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    gap: 12px;
+}
+
+.custom-usecase-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.custom-usecase-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.custom-usecase-instructions {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.custom-usecase-delete {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-speed);
+    flex-shrink: 0;
+}
+
+.custom-usecase-delete:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.empty-message {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 20px;
+}
+
+.playground-textarea-small {
+    min-height: 60px;
+    resize: vertical;
 }

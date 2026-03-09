@@ -173,3 +173,8 @@ alexandria/
 - Escape HTML before DOM insertion (use `escapeHtml()` utility)
 - Use HTTPS for all external requests
 - Validate imported JSON structure before processing
+
+## Version Management
+- **Always bump the version** in `manifest.json` for meaningful changes or new features
+- Follow semantic versioning: MAJOR.MINOR.PATCH
+- Update the version badge in popup.html when version changes

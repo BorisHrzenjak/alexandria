@@ -1,6 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Alexandria popup loaded.');
 
+    // Set version badge from manifest
+    const versionBadge = document.getElementById('version-badge');
+    if (versionBadge && chrome.runtime && chrome.runtime.getManifest) {
+        const manifest = chrome.runtime.getManifest();
+        versionBadge.textContent = 'v' + manifest.version;
+    }
+
     // DOM Elements
     const body = document.body;
     const sidebar = document.getElementById('sidebar');
@@ -26,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playgroundContainer = document.getElementById('playground-container');
     const promptListContainer = document.querySelector('.prompt-list-container');
     const playgroundPurposeSelect = document.getElementById('playground-purpose');
-    const playgroundModelSelect = document.getElementById('playground-model');
+    const playgroundInstructionsTextarea = document.getElementById('playground-instructions');
     const playgroundInputTextarea = document.getElementById('playground-input');
     const playgroundOptimizeBtn = document.getElementById('playground-optimize-btn');
     const playgroundClearBtn = document.getElementById('playground-clear-btn');
@@ -36,12 +43,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const playgroundDownloadBtn = document.getElementById('playground-download-btn');
     const playgroundRetryBtn = document.getElementById('playground-retry-btn');
     const playgroundRestoreBtn = document.getElementById('playground-restore-btn');
+    const playgroundManageUsecasesBtn = document.getElementById('playground-manage-usecases-btn');
+
+    // Custom Use Cases Modal Elements
+    const customUsecasesModal = document.getElementById('custom-usecases-modal');
+    const customUsecaseNameInput = document.getElementById('custom-usecase-name');
+    const customUsecaseInstructionsInput = document.getElementById('custom-usecase-instructions');
+    const addCustomUsecaseBtn = document.getElementById('add-custom-usecase-btn');
+    const customUsecasesList = document.getElementById('custom-usecases-list');
 
     // AI Enhancement Elements
     const panelEnhanceBtn = document.getElementById('panel-enhance-btn');
     const modalEnhanceBtn = document.getElementById('modal-enhance-btn');
     const openRouterApiKeyInput = document.getElementById('openrouter-api-key');
     const saveApiKeyBtn = document.getElementById('save-api-key-btn');
+    const modelPicker = document.getElementById('model-picker');
 
     // Panel Elements
     const promptViewPanel = document.getElementById('prompt-view-panel');
@@ -83,6 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Playground State
     let currentOptimizedPrompt = ''; // Store the current optimized prompt
     let currentOriginalPrompt = ''; // Store the original prompt for comparison
+
+    // Custom Use Cases State
+    let customUseCases = []; // Store custom use cases from storage
 
     // --- Theme Management ---
     const validThemes = ['tokyo-night', 'dracula', 'one-dark-pro', 'github-dark', 'monokai', 'nord', 'ayu-dark', 'night-owl', 'catppuccin', 'github-light'];
@@ -441,6 +460,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         loadThemePreference();
         loadOpenRouterApiKey();
+        chrome.storage.local.get('selectedModel', (result) => {
+            if (result.selectedModel && window.openRouterApi) {
+                window.openRouterApi.setModel(result.selectedModel);
+            }
+        });
+        chrome.storage.local.get({ customUseCases: [] }, (result) => {
+            customUseCases = result.customUseCases || [];
+            populatePurposeDropdown();
+        });
     };
 
     // --- OpenRouter API Integration ---
@@ -453,6 +481,81 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     };
+
+    // Load saved model
+    const loadSelectedModel = () => {
+        chrome.storage.local.get('selectedModel', (result) => {
+            if (modelPicker && result.selectedModel) {
+                modelPicker.value = result.selectedModel;
+                if (window.openRouterApi) {
+                    window.openRouterApi.setModel(result.selectedModel);
+                }
+            }
+        });
+    };
+
+    // Fetch available models from OpenRouter
+    const fetchOpenRouterModels = async () => {
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/models');
+            const data = await response.json();
+            
+            if (data.data && Array.isArray(data.data)) {
+                // Sort models - popular ones first, then alphabetically
+                const popularModels = [
+                    'google/gemini-2.5-flash',
+                    'openai/gpt-4o',
+                    'openai/gpt-4o-mini',
+                    'anthropic/claude-3.5-sonnet',
+                    'meta-llama/llama-3.1-70b-instruct',
+                    'meta-llama/llama-3.1-8b-instruct',
+                    'mistralai/mistral-7b-instruct',
+                    'qwen/qwen-2.5-72b-instruct'
+                ];
+                
+                const sortedModels = data.data.sort((a, b) => {
+                    const aIndex = popularModels.indexOf(a.id);
+                    const bIndex = popularModels.indexOf(b.id);
+                    if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+                    if (aIndex !== -1) return -1;
+                    if (bIndex !== -1) return 1;
+                    return a.id.localeCompare(b.id);
+                });
+                
+                // Clear and populate the dropdown
+                modelPicker.innerHTML = '';
+                
+                sortedModels.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = model.id;
+                    modelPicker.appendChild(option);
+                });
+                
+                // Restore saved selection
+                chrome.storage.local.get('selectedModel', (result) => {
+                    if (result.selectedModel) {
+                        modelPicker.value = result.selectedModel;
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch models:', error);
+            modelPicker.innerHTML = '<option value="google/gemini-2.5-flash">Google Gemini 2.5 Flash (Default)</option>';
+        }
+    };
+
+    // Save model when changed
+    if (modelPicker) {
+        modelPicker.addEventListener('change', () => {
+            const selectedModel = modelPicker.value;
+            chrome.storage.local.set({ selectedModel: selectedModel }, () => {
+                if (window.openRouterApi) {
+                    window.openRouterApi.setModel(selectedModel);
+                }
+            });
+        });
+    }
 
     // Function to show loading state on buttons
     const setButtonLoading = (button, isLoading) => {
@@ -931,6 +1034,7 @@ document.addEventListener('DOMContentLoaded', () => {
     settingsBtn.addEventListener('click', () => {
         setActiveMenuItem(settingsBtn);
         openModal(settingsModal);
+        fetchOpenRouterModels();
     });
 
     // Save OpenRouter API Key
@@ -1744,16 +1848,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const optimizePlaygroundPrompt = async () => {
         const purpose = playgroundPurposeSelect.value;
-        const model = playgroundModelSelect.value;
+        const customInstructions = playgroundInstructionsTextarea.value.trim();
         const inputText = playgroundInputTextarea.value.trim();
 
         // Validation
         if (!purpose) {
             alert('Please select a use case.');
-            return;
-        }
-        if (!model) {
-            alert('Please select a target model.');
             return;
         }
         if (!inputText) {
@@ -1777,8 +1877,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            console.log('Optimizing prompt for:', model, 'purpose:', purpose);
-            const optimizedText = await window.openRouterApi.optimizePromptForModel(inputText, model, purpose);
+            console.log('Optimizing prompt for purpose:', purpose, 'custom instructions:', customInstructions);
+            const optimizedText = await window.openRouterApi.optimizePromptForModel(inputText, purpose, customInstructions);
             console.log('Received optimized text:', optimizedText.substring(0, 50) + '...');
 
             currentOptimizedPrompt = optimizedText;
@@ -1801,24 +1901,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const purpose = playgroundPurposeSelect.value;
-        const model = playgroundModelSelect.value;
+        const customInstructions = playgroundInstructionsTextarea.value.trim();
         const timestamp = new Date().toISOString();
 
-        const title = `${purpose.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} for ${model.toUpperCase()}`;
+        const title = `${purpose.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} Prompt`;
 
         const newPrompt = {
             id: Date.now().toString(),
             title,
             text: currentOptimizedPrompt,
             category: 'Playground',
-            tags: ['playground', purpose, model, 'optimized'],
+            tags: ['playground', purpose, 'optimized'],
             favorite: false,
             createdAt: timestamp,
             updatedAt: timestamp,
             metadata: {
                 originalPrompt: currentOriginalPrompt,
-                optimizedFor: model,
                 useCase: purpose,
+                customInstructions: customInstructions,
                 source: 'playground'
             }
         };
@@ -1839,16 +1939,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const purpose = playgroundPurposeSelect.value;
-        const model = playgroundModelSelect.value;
+        const customInstructions = playgroundInstructionsTextarea.value.trim();
         const timestamp = new Date().toISOString().split('T')[0];
 
         let content, filename, mimeType;
 
         if (format === 'md') {
-            content = `# Optimized Prompt for ${model.toUpperCase()}
+            content = `# Optimized Prompt
 
 **Use Case:** ${purpose.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-**Target Model:** ${model.toUpperCase()}
+${customInstructions ? `**Custom Instructions:** ${customInstructions}` : ''}
 **Created:** ${new Date().toLocaleDateString()}
 
 ## Original Prompt
@@ -1863,11 +1963,11 @@ ${currentOptimizedPrompt}
 
 ---
 *Generated with Alexandria Prompt Library*`;
-            filename = `optimized-prompt-${model}-${timestamp}.md`;
+            filename = `optimized-prompt-${timestamp}.md`;
             mimeType = 'text/markdown';
         } else {
             content = currentOptimizedPrompt;
-            filename = `optimized-prompt-${model}-${timestamp}.txt`;
+            filename = `optimized-prompt-${timestamp}.txt`;
             mimeType = 'text/plain';
         }
 
@@ -1955,6 +2055,135 @@ ${currentOptimizedPrompt}
     if (playgroundRestoreBtn) {
         playgroundRestoreBtn.addEventListener('click', restoreOriginalPrompt);
     }
+
+    if (playgroundManageUsecasesBtn) {
+        playgroundManageUsecasesBtn.addEventListener('click', () => {
+            loadCustomUseCases();
+            openModal(customUsecasesModal);
+        });
+    }
+
+    if (playgroundPurposeSelect) {
+        playgroundPurposeSelect.addEventListener('change', (e) => {
+            const value = e.target.value;
+            if (value.startsWith('custom-')) {
+                const id = value.replace('custom-', '');
+                const customUC = customUseCases.find(uc => uc.id === id);
+                if (customUC) {
+                    playgroundInstructionsTextarea.value = customUC.instructions;
+                }
+            }
+        });
+    }
+
+    if (addCustomUsecaseBtn) {
+        addCustomUsecaseBtn.addEventListener('click', addCustomUseCase);
+    }
+
+    // Custom Use Cases Functions
+    const loadCustomUseCases = () => {
+        chrome.storage.local.get({ customUseCases: [] }, (result) => {
+            customUseCases = result.customUseCases || [];
+            renderCustomUseCasesList();
+        });
+    };
+
+    const saveCustomUseCases = (callback) => {
+        chrome.storage.local.set({ customUseCases: customUseCases }, () => {
+            if (callback) callback();
+        });
+    };
+
+    const addCustomUseCase = () => {
+        const name = customUsecaseNameInput.value.trim();
+        const instructions = customUsecaseInstructionsInput.value.trim();
+
+        if (!name || !instructions) {
+            alert('Please enter both a name and instructions for the custom use case.');
+            return;
+        }
+
+        const id = Date.now().toString();
+        customUseCases.push({ id, name, instructions });
+        saveCustomUseCases(() => {
+            customUsecaseNameInput.value = '';
+            customUsecaseInstructionsInput.value = '';
+            renderCustomUseCasesList();
+            populatePurposeDropdown();
+        });
+    };
+
+    const deleteCustomUseCase = (id) => {
+        if (!confirm('Delete this custom use case?')) return;
+        
+        customUseCases = customUseCases.filter(uc => uc.id !== id);
+        saveCustomUseCases(() => {
+            renderCustomUseCasesList();
+            populatePurposeDropdown();
+        });
+    };
+
+    const renderCustomUseCasesList = () => {
+        if (!customUsecasesList) return;
+
+        if (customUseCases.length === 0) {
+            customUsecasesList.innerHTML = '<p class="empty-message">No custom use cases yet. Add one above!</p>';
+            return;
+        }
+
+        customUsecasesList.innerHTML = customUseCases.map(uc => `
+            <div class="custom-usecase-item">
+                <div class="custom-usecase-info">
+                    <div class="custom-usecase-name">${escapeHtml(uc.name)}</div>
+                    <div class="custom-usecase-instructions">${escapeHtml(uc.instructions)}</div>
+                </div>
+                <button class="custom-usecase-delete" data-id="${uc.id}" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3,6 5,6 21,6"></polyline>
+                        <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"></path>
+                    </svg>
+                </button>
+            </div>
+        `).join('');
+
+        customUsecasesList.querySelectorAll('.custom-usecase-delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.dataset.id;
+                deleteCustomUseCase(id);
+            });
+        });
+    };
+
+    const populatePurposeDropdown = () => {
+        if (!playgroundPurposeSelect) return;
+
+        const defaultOptions = [
+            { value: '', label: 'Select use case...' },
+            { value: 'text-generation', label: 'Text Generation' },
+            { value: 'creative-writing', label: 'Creative Writing' },
+            { value: 'code-generation', label: 'Code Generation' },
+            { value: 'image-generation', label: 'Image Generation' },
+            { value: 'data-analysis', label: 'Data Analysis' },
+            { value: 'problem-solving', label: 'Problem Solving' },
+            { value: 'technical-writing', label: 'Technical Writing' },
+            { value: 'marketing-copy', label: 'Marketing Copy' },
+            { value: 'educational', label: 'Educational Content' }
+        ];
+
+        let html = defaultOptions.map(opt => 
+            `<option value="${opt.value}">${opt.label}</option>`
+        ).join('');
+
+        if (customUseCases.length > 0) {
+            html += '<optgroup label="Custom">';
+            customUseCases.forEach(uc => {
+                html += `<option value="custom-${uc.id}">${escapeHtml(uc.name)}</option>`;
+            });
+            html += '</optgroup>';
+        }
+
+        playgroundPurposeSelect.innerHTML = html;
+    };
 
     // --- Usage Tracking & Dashboard ---
 
