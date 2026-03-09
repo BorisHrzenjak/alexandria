@@ -408,6 +408,10 @@ body {
     font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .version-tag {
@@ -417,6 +421,8 @@ body {
     padding: 2px 6px;
     border-radius: 4px;
     font-weight: 500;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .sidebar-section {

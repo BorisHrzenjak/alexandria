@@ -2083,12 +2083,12 @@ ${currentOptimizedPrompt}
     }
 
     // Custom Use Cases Functions
-    const loadCustomUseCases = () => {
+    function loadCustomUseCases() {
         chrome.storage.local.get({ customUseCases: [] }, (result) => {
             customUseCases = result.customUseCases || [];
             renderCustomUseCasesList();
         });
-    };
+    }
 
     const saveCustomUseCases = (callback) => {
         chrome.storage.local.set({ customUseCases: customUseCases }, () => {
@@ -2096,7 +2096,7 @@ ${currentOptimizedPrompt}
         });
     };
 
-    const addCustomUseCase = () => {
+    function addCustomUseCase() {
         const name = customUsecaseNameInput.value.trim();
         const instructions = customUsecaseInstructionsInput.value.trim();
 
@@ -2113,7 +2113,7 @@ ${currentOptimizedPrompt}
             renderCustomUseCasesList();
             populatePurposeDropdown();
         });
-    };
+    }
 
     const deleteCustomUseCase = (id) => {
         if (!confirm('Delete this custom use case?')) return;
@@ -2156,7 +2156,7 @@ ${currentOptimizedPrompt}
         });
     };
 
-    const populatePurposeDropdown = () => {
+    function populatePurposeDropdown() {
         if (!playgroundPurposeSelect) return;
 
         const defaultOptions = [
@@ -2172,7 +2172,7 @@ ${currentOptimizedPrompt}
             { value: 'educational', label: 'Educational Content' }
         ];
 
-        let html = defaultOptions.map(opt => 
+        let html = defaultOptions.map(opt =>
             `<option value="${opt.value}">${opt.label}</option>`
         ).join('');
 
@@ -2185,7 +2185,7 @@ ${currentOptimizedPrompt}
         }
 
         playgroundPurposeSelect.innerHTML = html;
-    };
+    }
 
     // --- Usage Tracking & Dashboard ---
 
