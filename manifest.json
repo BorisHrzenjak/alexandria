@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Alexandria Prompt Library",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "description": "A personal library to store and manage AI prompts.",
   "permissions": [
     "storage",

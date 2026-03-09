@@ -410,6 +410,15 @@ body {
     color: var(--text-primary);
 }
 
+.version-tag {
+    font-size: 10px;
+    color: var(--text-secondary);
+    background-color: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
 .sidebar-section {
     padding: 0 8px;
     margin-bottom: 20px;
